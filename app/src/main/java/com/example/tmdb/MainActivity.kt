@@ -42,85 +42,45 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.tmdb.movieList.util.Screen
 import com.example.tmdb.ui.theme.TMDBTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Onboarding()
+            val navController = rememberNavController()
+
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Home.rout
+            ) {
+                composable(Screen.Home.rout) {
+                    HomeScreen(navController)
+                }
+
+                composable(Screen.VideoList.rout) {
+                    VideoList(navController)
+                }
+                composable(Screen.Details.rout + "/{movieId}",
+                    arguments = listOf(
+                        navArgument("movieId") {
+                            type = NavType.IntType
+                        }
+                    )
+                ) {
+                    VideoDetails(navController)
+                }
+            }
         }
     }
 }
 
-@Preview
-@Composable
-fun Onboarding() {
-    val context = LocalContext.current
-    Image(
-        painter = painterResource(id = R.drawable.img_home),
-        contentDescription = "",
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
-    )
-    Column(
-        verticalArrangement = Arrangement.Bottom,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-
-    ) {
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_tmdb),
-            contentDescription = "",
-            alignment = Alignment.TopStart,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(17.dp)
-        )
-        Spacer(modifier = Modifier.height(15.dp))
-        Text(
-            text = "Everything about movies, series, anime and much more.",
-            style = TextStyle(fontSize = 36.sp, color = Color.White),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Stay up to date with information about films, series, anime and much more.",
-            style = TextStyle(fontSize = 18.sp), color = Color.White
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(
-            modifier = Modifier.fillMaxWidth()
-                .height(48.dp)
-                .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF8000FF), Color(0xFF4D0099)),
-                ),
-                shape = RoundedCornerShape(30.dp)
-            ),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent, // Makes the button background transparent
-                contentColor = Color.White // Sets text color
-            ),
-
-            onClick = { setOnClick(context) }
-        ) {
-            Text(
-                text = "Access",
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-private fun setOnClick(context: Context) {
-    Intent(context, HomeActivity::class.java).also {
-        context.startActivity(it)
-    }
-}

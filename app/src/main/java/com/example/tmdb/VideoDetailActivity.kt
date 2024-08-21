@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +27,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,12 +37,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -54,29 +59,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-
-class VideoDetailActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            VideoDetails()
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun VideoDetailsPreview() {
-    VideoDetails()
-}
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
+import com.example.tmdb.details.presentation.MovieDetailsViewModel
+import com.example.tmdb.movieList.data.remote.MovieApi
+import com.example.tmdb.ui.theme.gradientBrushTwo
 
 @Composable
-fun VideoDetails() {
+fun VideoDetails(navController: NavHostController) {
+    val context = LocalContext.current
+    val movieDetailsViewModel = hiltViewModel<MovieDetailsViewModel>()
+    val movieDetailsState = movieDetailsViewModel.movieDetailsState.collectAsState().value
+
+    val backDropImageState = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(MovieApi.IMAGE_BASE_URL + movieDetailsState.movie?.backdrop_path)
+            .size(Size.ORIGINAL)
+            .build()
+    ).state
     var isFavorite by remember {
         mutableStateOf(false)
     }
-    val context = LocalContext.current
     val activity = context as? ComponentActivity
     Column(
         modifier = Modifier
@@ -86,29 +94,48 @@ fun VideoDetails() {
                 color = Color(0xFF15151D),
             )
     ) {
+
         ConstraintLayout {
             val (videoImage, videoRatings, blurBg) = createRefs()
-            Image(
-                painter = painterResource(id = R.drawable.img_home),
-                contentDescription = "Video Image",
-                modifier = Modifier
-                    .constrainAs(videoImage) {}
-                    .fillMaxWidth()
-                    .height(450.dp),
-                contentScale = ContentScale.FillWidth
-            )
+            if (backDropImageState is AsyncImagePainter.State.Error) {
+                Box(
+                    modifier = Modifier
+                        .constrainAs(videoImage) {}
+                        .fillMaxWidth()
+                        .height(450.dp),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(70.dp),
+                        imageVector = Icons.Rounded.Warning,
+                        contentDescription = movieDetailsState.movie?.title
+                    )
+                }
+            }
+
+            if (backDropImageState is AsyncImagePainter.State.Success) {
+                Image(
+                    painter = backDropImageState.painter,
+                    contentDescription = movieDetailsState.movie?.title,
+                    modifier = Modifier
+                        .constrainAs(videoImage) {}
+                        .fillMaxWidth()
+                        .height(450.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
+//            Image(
+//                painter = painterResource(id = R.drawable.img_home),
+//                contentDescription = "Video Image",
+//                modifier = Modifier
+//                    .constrainAs(videoImage) {}
+//                    .fillMaxWidth()
+//                    .height(450.dp),
+//                contentScale = ContentScale.FillWidth
+//            )
             Spacer(modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color(0x7F15151D),
-                            Color(0xFF15151D)
-                        )
-                    )
-                )
+                .background(gradientBrushTwo)
                 .constrainAs(blurBg) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -142,48 +169,59 @@ fun VideoDetails() {
                                     shape = RoundedCornerShape(50)
                                 )
                         )
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .constrainAs(ratingGraphic) {}
-                                .size(60.dp),
-                            progress = 0.79f,
-                            color = Color(0xFFFF1F8A),
-                            trackColor = Color(0xFF303243),
-                            strokeCap = StrokeCap.Round,
-                            strokeWidth = 6.dp
-                        )
-                        Text(text = "79%",
-                            color = Color.White,
-                            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
-                            modifier = Modifier.constrainAs(ratingValue) {
-                                start.linkTo(ratingGraphic.start)
-                                end.linkTo(ratingGraphic.end)
-                                top.linkTo(ratingGraphic.top)
-                                bottom.linkTo(ratingGraphic.bottom)
-                            })
+                        movieDetailsState.movie?.let { movie ->
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .constrainAs(ratingGraphic) {}
+                                    .size(60.dp),
+                                progress = ((movie.vote_average) / 10).toFloat(),
+                                color = Color(0xFFFF1F8A),
+                                trackColor = Color(0xFF303243),
+                                strokeCap = StrokeCap.Round,
+                                strokeWidth = 6.dp
+                            )
+                            Text(text = "${(movie.vote_average * 10).toInt()}%",
+                                color = Color.White,
+                                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                                modifier = Modifier.constrainAs(ratingValue) {
+                                    start.linkTo(ratingGraphic.start)
+                                    end.linkTo(ratingGraphic.end)
+                                    top.linkTo(ratingGraphic.top)
+                                    bottom.linkTo(ratingGraphic.bottom)
+                                })
+                        }
+
                     }
                     Spacer(modifier = Modifier.padding(16.dp))
                     Column {
-                        Text(
-                            modifier = Modifier.padding(bottom = 7.dp),
-                            text = "Star Wars: Episode III - Revenge of the Sith",
-                            color = Color.White,
-                            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
-                        )
-                        Row {
+                        movieDetailsState.movie?.let { movie ->
+                            Text(
+                                modifier = Modifier.padding(bottom = 7.dp),
+                                text = movie.title,
+                                color = Color.White,
+                                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        ) {
                             Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_duration),
-                                contentDescription = "Duration icon",
+//                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_duration),
+                                imageVector = Icons.Outlined.DateRange,
+                                contentDescription = movieDetailsState.movie?.release_date,
                                 tint = Color(0xFFBBBBBB),
                                 modifier = Modifier
-                                    .align(alignment = Alignment.CenterVertically)
-                                    .padding(end = 7.dp)
+//                                    .align(alignment = Alignment.CenterVertically)
                             )
-                            Text(
-                                text = "2h 20m",
-                                color = Color(0xFFBBBBBB),
-                                style = TextStyle(fontSize = 16.sp)
-                            )
+                            movieDetailsState.movie?.let { movie ->
+                                Text(
+                                    text = movie.release_date,
+                                    color = Color(0xFFBBBBBB),
+                                    style = TextStyle(fontSize = 16.sp)
+                                )
+                            }
                         }
                     }
                 }
@@ -196,12 +234,14 @@ fun VideoDetails() {
                 .height(1.dp)
                 .background(color = Color(0x7A000000))
         )
-        Text(
-            text = "Anakin joins forces with Obi-Wan and sets Palpatine fre from the clutches of Count Dooku. However, he falls prey to Palpatine and the Jedi's mind games and gives into temptation",
-            color = Color(0xFFCCCCCC),
-            modifier = Modifier.padding(horizontal = 30.dp),
-            style = TextStyle(fontSize = 14.sp)
-        )
+        movieDetailsState.movie?.let { movie ->
+            Text(
+                text = movie.overview,
+                color = Color(0xFFCCCCCC),
+                modifier = Modifier.padding(horizontal = 30.dp),
+                style = TextStyle(fontSize = 14.sp)
+            )
+        }
         Button(
             onClick = { },
             modifier = Modifier
@@ -267,7 +307,7 @@ fun VideoDetails() {
 
         DisplayGenre(genreList = listOf("Drama", "Thriller"))
 
-        VideoList(videoType = "Recommendations", videoName = "Recommended")
+//        VideoList(videoType = "Recommendations", videoName = "Recommended")
 
         Spacer(
             modifier = Modifier
@@ -286,7 +326,7 @@ fun VideoDetails() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = {
-                activity?.finish()
+                navController.popBackStack()
             }) {
                 Icon(
                     tint = Color.White,

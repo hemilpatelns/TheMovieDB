@@ -1,11 +1,5 @@
 package com.example.tmdb
 
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,13 +22,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,37 +38,39 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
+import com.example.tmdb.movieList.data.remote.MovieApi
+import com.example.tmdb.movieList.domain.model.Movie
+import com.example.tmdb.movieList.presentation.MovieListState
+import com.example.tmdb.movieList.presentation.MovieListUiEvent
+import com.example.tmdb.movieList.presentation.MovieListViewModel
+import com.example.tmdb.movieList.util.Category
+import com.example.tmdb.movieList.util.Screen
+import com.example.tmdb.ui.theme.gradientBrushOne
 
-class HomeActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            Home()
-        }
-    }
-}
-
-@Preview
 @Composable
-private fun HomePreview() {
-    Home()
-}
-
-@Composable
-fun Home() {
+fun VideoList(
+    navController: NavHostController,
+) {
+    val movieListViewModel = hiltViewModel<MovieListViewModel>()
+    val movieListState = movieListViewModel.movieListState.collectAsState().value
     var selectedCategory by remember {
         mutableStateOf("Movies")
     }
@@ -79,11 +78,7 @@ fun Home() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF8000FF), Color(0xFF303243), Color(0xFF303243)),
-                ),
-            )
+            .background(gradientBrushOne)
     ) {
         Row(
             modifier = Modifier
@@ -119,8 +114,18 @@ fun Home() {
                 selectedCategory = it
             }
         )
-        VideoList("Trending", selectedCategory)
-        VideoList("Most Popular", selectedCategory)
+        PopularVideoList(
+            "Most Popular",
+            movieListState = movieListState,
+            navController = navController,
+            onEvent = movieListViewModel::onEvent
+        )
+        UpcomingVideoList(
+            "Upcoming",
+            movieListState = movieListState,
+            navController = navController,
+            onEvent = movieListViewModel::onEvent
+        )
     }
 }
 
@@ -177,55 +182,146 @@ fun SearchScreen() {
 }
 
 @Composable
-fun VideoCard(name: String) {
+fun VideoCard(movie: Movie, navController: NavHostController) {
     val context = LocalContext.current
-    Card(
-        modifier = Modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        )
+    val imageState = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(MovieApi.IMAGE_BASE_URL + movie.backdrop_path)
+            .size(Size.ORIGINAL)
+            .build()
+    ).state
+
+    Box(
+        contentAlignment = Alignment.BottomCenter,
+        modifier = Modifier
+            .background(color = Color.Transparent)
+            .width(150.dp)
+            .height(230.dp)
+            .clip(RoundedCornerShape(10))
+            .clickable {
+                navController.navigate(Screen.Details.rout + "/${movie.id}")
+            },
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.background(color = Color.Transparent),
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.img_home),
-                contentDescription = "Video image",
+        if (imageState is AsyncImagePainter.State.Error) {
+            Box(
                 modifier = Modifier
                     .width(150.dp)
                     .height(230.dp)
                     .aspectRatio(.65f)
-                    .clip(RoundedCornerShape(10))
-                    .clickable { setOnClick(context) },
+                    .clip(RoundedCornerShape(10)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Warning,
+                    contentDescription = movie.title
+                )
+            }
+        }
+
+        if (imageState is AsyncImagePainter.State.Success) {
+            Image(
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(230.dp)
+                    .aspectRatio(.65f)
+                    .clip(RoundedCornerShape(10)),
+                painter = imageState.painter,
+                contentDescription = movie.title,
                 contentScale = ContentScale.Crop
             )
-            Text(
-                text = name,
-                color = Color.White
-            )
+        }
+        Text(
+            text = movie.title,
+            color = Color.White,
+            style = TextStyle(fontWeight = FontWeight.SemiBold),
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 5.dp, vertical = 8.dp)
+        )
+    }
+}
+
+
+@Composable
+fun PopularVideoList(
+    videoType: String,
+    movieListState: MovieListState,
+    navController: NavHostController,
+    onEvent: (MovieListUiEvent) -> Unit
+) {
+    if (movieListState.popularMovieList.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        Text(
+            text = videoType,
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+            modifier = Modifier
+                .padding(horizontal = 30.dp)
+                .padding(top = 30.dp, bottom = 20.dp),
+            color = Color.White
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy((-48).dp)
+        ) {
+            items(movieListState.popularMovieList.size) { index ->
+                Spacer(modifier = Modifier.padding(start = 30.dp))
+                VideoCard(
+                    movie = movieListState.popularMovieList[index],
+                    navController = navController
+                )
+                Spacer(modifier = Modifier.padding(end = 30.dp))
+
+                if (index >= movieListState.popularMovieList.size - 1 && !movieListState.isLoading) {
+                    onEvent(MovieListUiEvent.Paginate(Category.POPULAR))
+                }
+            }
         }
     }
 }
 
 @Composable
-fun VideoList(videoType: String, videoName: String) {
-    Text(
-        text = videoType,
-        style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-        modifier = Modifier
-            .padding(horizontal = 30.dp)
-            .padding(top = 30.dp, bottom = 20.dp),
-        color = Color.White
-    )
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy((-48).dp)
-    ) {
-        items(6) {
-            Spacer(modifier = Modifier.padding(start = 30.dp))
-            VideoCard("$videoName $it")
-            Spacer(modifier = Modifier.padding(end = 30.dp))
+fun UpcomingVideoList(
+    videoType: String,
+    movieListState: MovieListState,
+    navController: NavHostController,
+    onEvent: (MovieListUiEvent) -> Unit
+) {
+    if (movieListState.upcomingMovieList.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        Text(
+            text = videoType,
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+            modifier = Modifier
+                .padding(horizontal = 30.dp)
+                .padding(top = 30.dp, bottom = 20.dp),
+            color = Color.White
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy((-48).dp)
+        ) {
+            items(movieListState.upcomingMovieList.size) { index ->
+                Spacer(modifier = Modifier.padding(start = 30.dp))
+                VideoCard(
+                    movie = movieListState.upcomingMovieList[index],
+                    navController = navController
+                )
+                Spacer(modifier = Modifier.padding(end = 30.dp))
+
+                if (index >= movieListState.upcomingMovieList.size - 1 && !movieListState.isLoading) {
+                    onEvent(MovieListUiEvent.Paginate(Category.UPCOMING))
+                }
+            }
         }
     }
 }
@@ -274,11 +370,5 @@ fun CategorySelector(categories: List<String>, onCategorySelected: (String) -> U
             )
             Spacer(modifier = Modifier.padding(start = 30.dp))
         }
-    }
-}
-
-private fun setOnClick(context: Context) {
-    Intent(context, VideoDetailActivity::class.java).also {
-        context.startActivity(it)
     }
 }
