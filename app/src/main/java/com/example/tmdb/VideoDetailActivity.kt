@@ -1,29 +1,26 @@
 package com.example.tmdb
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -51,269 +48,285 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.tmdb.details.presentation.MovieDetailsViewModel
-import com.example.tmdb.movieList.data.remote.MovieApi
+import com.example.tmdb.movieList.data.remote.CommonApi
+import com.example.tmdb.movieList.data.remote.respond.Cast
+import com.example.tmdb.movieList.util.FunctionUtil
 import com.example.tmdb.ui.theme.gradientBrushTwo
 
 @Composable
 fun VideoDetails(navController: NavHostController) {
     val context = LocalContext.current
+    val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     val movieDetailsViewModel = hiltViewModel<MovieDetailsViewModel>()
     val movieDetailsState = movieDetailsViewModel.movieDetailsState.collectAsState().value
+    val castList = movieDetailsState.movie?.cast
 
     val backDropImageState = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
-            .data(MovieApi.IMAGE_BASE_URL + movieDetailsState.movie?.backdrop_path)
+            .data(CommonApi.IMAGE_BASE_URL + movieDetailsState.movie?.backdrop_path)
             .size(Size.ORIGINAL)
             .build()
     ).state
     var isFavorite by remember {
         mutableStateOf(false)
     }
-    val activity = context as? ComponentActivity
-    Column(
+//    val activity = context as? ComponentActivity
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(
-                color = Color(0xFF15151D),
-            )
+            .background(color = Color(0xFF15151D)),
+        contentPadding = PaddingValues(bottom = if (isEdgeToEdge) 40.dp else 0.dp)
     ) {
+        item {
+            ConstraintLayout {
+                val (videoImage, videoRatings, blurBg) = createRefs()
 
-        ConstraintLayout {
-            val (videoImage, videoRatings, blurBg) = createRefs()
-            if (backDropImageState is AsyncImagePainter.State.Error) {
-                Box(
-                    modifier = Modifier
-                        .constrainAs(videoImage) {}
-                        .fillMaxWidth()
-                        .height(450.dp),
-                ) {
-                    Icon(
-                        modifier = Modifier.size(70.dp),
-                        imageVector = Icons.Rounded.Warning,
-                        contentDescription = movieDetailsState.movie?.title
+                // Error state for image
+                if (backDropImageState is AsyncImagePainter.State.Error) {
+                    Box(
+                        modifier = Modifier
+                            .constrainAs(videoImage) {}
+                            .fillMaxWidth()
+                            .height(450.dp),
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(70.dp),
+                            imageVector = Icons.Rounded.Warning,
+                            contentDescription = movieDetailsState.movie?.title
+                        )
+                    }
+                }
+
+                // Success state for image
+                if (backDropImageState is AsyncImagePainter.State.Success) {
+                    Image(
+                        painter = backDropImageState.painter,
+                        contentDescription = movieDetailsState.movie?.title,
+                        modifier = Modifier
+                            .constrainAs(videoImage) {}
+                            .fillMaxWidth()
+                            .height(450.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
-            }
 
-            if (backDropImageState is AsyncImagePainter.State.Success) {
-                Image(
-                    painter = backDropImageState.painter,
-                    contentDescription = movieDetailsState.movie?.title,
+                Spacer(
                     modifier = Modifier
-                        .constrainAs(videoImage) {}
                         .fillMaxWidth()
-                        .height(450.dp),
-                    contentScale = ContentScale.Crop
+                        .height(150.dp)
+                        .background(gradientBrushTwo)
+                        .constrainAs(blurBg) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(videoImage.bottom)
+                        }
                 )
-            }
-//            Image(
-//                painter = painterResource(id = R.drawable.img_home),
-//                contentDescription = "Video Image",
-//                modifier = Modifier
-//                    .constrainAs(videoImage) {}
-//                    .fillMaxWidth()
-//                    .height(450.dp),
-//                contentScale = ContentScale.FillWidth
-//            )
-            Spacer(modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .background(gradientBrushTwo)
-                .constrainAs(blurBg) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(videoImage.bottom)
-                })
-            Box(
-                modifier = Modifier.constrainAs(videoRatings) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(videoImage.bottom)
-                    bottom.linkTo(videoImage.bottom)
-                }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 30.dp),
-                    verticalAlignment = Alignment.CenterVertically
+
+                Box(
+                    modifier = Modifier.constrainAs(videoRatings) {
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        top.linkTo(videoImage.bottom)
+                        bottom.linkTo(videoImage.bottom)
+                    }
                 ) {
-                    ConstraintLayout {
-                        val (ratingGraphic, ratingBg, ratingValue) = createRefs()
-                        Box(
-                            modifier = Modifier
-                                .constrainAs(ratingBg) {
-                                    start.linkTo(ratingGraphic.start)
-                                    end.linkTo(ratingGraphic.end)
-                                    top.linkTo(ratingGraphic.top)
-                                    bottom.linkTo(ratingGraphic.bottom)
-                                }
-                                .size(50.dp)
-                                .background(
-                                    color = Color(0xFF15161D),
-                                    shape = RoundedCornerShape(50)
-                                )
-                        )
-                        movieDetailsState.movie?.let { movie ->
-                            CircularProgressIndicator(
+                    Row(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ConstraintLayout {
+                            val (ratingGraphic, ratingBg, ratingValue) = createRefs()
+
+                            Box(
                                 modifier = Modifier
-                                    .constrainAs(ratingGraphic) {}
-                                    .size(60.dp),
-                                progress = ((movie.vote_average) / 10).toFloat(),
-                                color = Color(0xFFFF1F8A),
-                                trackColor = Color(0xFF303243),
-                                strokeCap = StrokeCap.Round,
-                                strokeWidth = 6.dp
+                                    .constrainAs(ratingBg) {
+                                        start.linkTo(ratingGraphic.start)
+                                        end.linkTo(ratingGraphic.end)
+                                        top.linkTo(ratingGraphic.top)
+                                        bottom.linkTo(ratingGraphic.bottom)
+                                    }
+                                    .size(50.dp)
+                                    .background(
+                                        color = Color(0xFF15161D),
+                                        shape = RoundedCornerShape(50)
+                                    )
                             )
-                            Text(text = "${(movie.vote_average * 10).toInt()}%",
-                                color = Color.White,
-                                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
-                                modifier = Modifier.constrainAs(ratingValue) {
-                                    start.linkTo(ratingGraphic.start)
-                                    end.linkTo(ratingGraphic.end)
-                                    top.linkTo(ratingGraphic.top)
-                                    bottom.linkTo(ratingGraphic.bottom)
-                                })
+
+                            movieDetailsState.movie?.let { movie ->
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .constrainAs(ratingGraphic) {}
+                                        .size(60.dp),
+                                    progress = ((movie.vote_average) / 10).toFloat(),
+                                    color = Color(0xFFFF1F8A),
+                                    trackColor = Color(0xFF303243),
+                                    strokeCap = StrokeCap.Round,
+                                    strokeWidth = 6.dp
+                                )
+
+                                Text(
+                                    text = "${(movie.vote_average * 10).toInt()}%",
+                                    color = Color.White,
+                                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                                    modifier = Modifier.constrainAs(ratingValue) {
+                                        start.linkTo(ratingGraphic.start)
+                                        end.linkTo(ratingGraphic.end)
+                                        top.linkTo(ratingGraphic.top)
+                                        bottom.linkTo(ratingGraphic.bottom)
+                                    }
+                                )
+                            }
                         }
 
-                    }
-                    Spacer(modifier = Modifier.padding(16.dp))
-                    Column {
-                        movieDetailsState.movie?.let { movie ->
-                            Text(
-                                modifier = Modifier.padding(bottom = 7.dp),
-                                text = movie.title,
-                                color = Color.White,
-                                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        ) {
-                            Icon(
-//                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_duration),
-                                imageVector = Icons.Outlined.DateRange,
-                                contentDescription = movieDetailsState.movie?.release_date,
-                                tint = Color(0xFFBBBBBB),
-                                modifier = Modifier
-//                                    .align(alignment = Alignment.CenterVertically)
-                            )
+                        Spacer(modifier = Modifier.padding(16.dp))
+
+                        Column {
                             movieDetailsState.movie?.let { movie ->
                                 Text(
-                                    text = movie.release_date,
-                                    color = Color(0xFFBBBBBB),
-                                    style = TextStyle(fontSize = 16.sp)
+                                    modifier = Modifier.padding(bottom = 7.dp),
+                                    text = movie.title,
+                                    color = Color.White,
+                                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
                                 )
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.DateRange,
+                                    contentDescription = movieDetailsState.movie?.release_date,
+                                    tint = Color(0xFFBBBBBB),
+                                )
+                                movieDetailsState.movie?.let { movie ->
+                                    Text(
+                                        text = movie.release_date,
+                                        color = Color(0xFFBBBBBB),
+                                        style = TextStyle(fontSize = 16.sp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
-        Spacer(
-            modifier = Modifier
-                .padding(horizontal = 30.dp, vertical = 30.dp)
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(color = Color(0x7A000000))
-        )
-        movieDetailsState.movie?.let { movie ->
-            Text(
-                text = movie.overview,
-                color = Color(0xFFCCCCCC),
-                modifier = Modifier.padding(horizontal = 30.dp),
-                style = TextStyle(fontSize = 14.sp)
+
+        item {
+            Spacer(
+                modifier = Modifier
+                    .padding(horizontal = 30.dp, vertical = 30.dp)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(color = Color(0x7A000000))
             )
         }
-        Button(
-            onClick = { },
-            modifier = Modifier
-                .padding(
-                    horizontal = 30.dp,
-                    vertical = 30.dp
+
+        item {
+            movieDetailsState.movie?.let { movie ->
+                Text(
+                    text = movie.overview,
+                    color = Color(0xFFCCCCCC),
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    style = TextStyle(fontSize = 14.sp)
                 )
-                .height(48.dp)
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally)
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(Color(0xFF8000FF), Color(0xFF4D0099)),
-                    ),
-                    shape = RoundedCornerShape(30.dp)
-                ),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent, // Makes the button background transparent
-                contentColor = Color.White // Sets text color
-            )
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_play_circle_outline),
-                contentDescription = "Play button",
-                modifier = Modifier.padding(horizontal = 5.dp)
-            )
-            Text(
-                text = "Watch Trailer",
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                modifier = Modifier.padding(horizontal = 5.dp)
-            )
-        }
-        Text(
-            text = "Main Cast",
-            color = Color.White,
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-            modifier = Modifier
-                .padding(top = 16.dp, bottom = 20.dp)
-                .padding(horizontal = 30.dp)
-        )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy((-50).dp)) {
-            items(10) {
-                Spacer(modifier = Modifier.width(30.dp))
-                CastCard("Artist $it")
-                Spacer(modifier = Modifier.width(30.dp))
             }
         }
 
-        Text(
-            text = "Category(s)",
-            color = Color.White,
-            style = TextStyle(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier
-                .padding(horizontal = 30.dp)
-                .padding(top = 40.dp)
-        )
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        DisplayGenre(genreList = listOf("Drama", "Thriller"))
+        item {
+            Button(
+                onClick = { },
+                modifier = Modifier
+                    .padding(horizontal = 30.dp, vertical = 30.dp)
+                    .height(48.dp)
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color(0xFF8000FF), Color(0xFF4D0099)),
+                        ),
+                        shape = RoundedCornerShape(30.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White
+                )
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_play_circle_outline),
+                    contentDescription = "Play button",
+                    modifier = Modifier.padding(horizontal = 5.dp)
+                )
+                Text(
+                    text = "Watch Trailer",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.padding(horizontal = 5.dp)
+                )
+            }
+        }
 
-//        VideoList(videoType = "Recommendations", videoName = "Recommended")
+        item {
+            Text(
+                text = "Main Cast",
+                color = Color.White,
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                modifier = Modifier
+                    .padding(top = 16.dp, bottom = 20.dp)
+                    .padding(horizontal = 30.dp)
+            )
+        }
 
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(30.dp)
-        )
+        item {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy((-50).dp)) {
+                castList?.let { list ->
+                    items(list) { cast ->
+                        Spacer(modifier = Modifier.width(30.dp))
+                        CastCard(cast, context)
+                        Spacer(modifier = Modifier.width(30.dp))
+                    }
+                }
+            }
+        }
+
+//        item {
+//            Spacer(modifier = Modifier.height(16.dp))
+//        }
+
+        item {
+            Text(
+                text = "Category(s)",
+                color = Color.White,
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                modifier = Modifier
+                    .padding(horizontal = 30.dp)
+                    .padding(top = 40.dp)
+            )
+        }
+
+        item {
+            DisplayGenre(genreList = listOf("Drama", "Thriller"))
+        }
     }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -364,29 +377,53 @@ fun VideoDetails(navController: NavHostController) {
 }
 
 @Composable
-fun CastCard(artistName: String) {
+fun CastCard(cast: Cast, context: Context) {
     Column(
+        modifier = Modifier
+            .width(80.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
+            painter = if(cast.profile_path != ""){
+                rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(context)
+                        .data(CommonApi.IMAGE_BASE_URL + cast.profile_path)
+                        .size(Size.ORIGINAL)
+                        .placeholder(R.drawable.ic_person)
+                        .build()
+                )
+            } else{
+                painterResource(id = R.drawable.ic_person)
+            },
+            contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(70.dp)
-                .border(
-                    4.dp, Color(0xFF303243),
-                    RoundedCornerShape(50)
-                ),
-            painter = painterResource(id = R.drawable.ic_person),
+                .size(80.dp)
+                .border(border = BorderStroke(3.dp, Color(0xFF303243)), shape = RoundedCornerShape(50))
+                .padding(1.dp)
+                .clip(RoundedCornerShape(50)),
             contentDescription = "Cast Image"
         )
-        Text(
-            modifier = Modifier.padding(vertical = 10.dp),
-            text = artistName,
-            color = Color.White,
-            style = TextStyle(
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
-        )
+        cast.name?.let {
+            Box(modifier = Modifier
+                .height(60.dp)
+                .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ){
+                Text(
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(vertical = 10.dp),
+                    text = it,
+                    maxLines = 3,
+                    color = Color.White,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+
+                    )
+                )
+            }
+        }
     }
 }
 

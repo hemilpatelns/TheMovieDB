@@ -20,5 +20,5 @@ data class MovieEntity(
     val vote_count: Int,
     @PrimaryKey
     val id: Int,
-    val category: String
+    val category: String,
 )

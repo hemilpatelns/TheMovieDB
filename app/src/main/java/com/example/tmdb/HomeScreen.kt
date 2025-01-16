@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -32,15 +34,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.tmdb.movieList.util.FunctionUtil
 import com.example.tmdb.movieList.util.Screen
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
 
 //    val context = LocalContext.current
+    val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     Box {
         Image(
             painter = painterResource(id = R.drawable.img_home),
@@ -103,12 +109,11 @@ fun HomeScreen(navController: NavHostController) {
                     textAlign = TextAlign.Center
                 )
             }
+            Spacer(
+                Modifier.height(
+                    if (isEdgeToEdge) 40.dp else 0.dp
+                )
+            )
         }
     }
 }
-
-//private fun setOnClick(context: Context) {
-//    Intent(context, VideoListActivity::class.java).also {
-//        context.startActivity(it)
-//    }
-//}

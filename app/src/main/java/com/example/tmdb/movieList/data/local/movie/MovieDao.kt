@@ -10,8 +10,14 @@ interface MovieDao {
     suspend fun upsertMovieList(movieList: List<MovieEntity>)
 
     @Query("SELECT * FROM MovieEntity WHERE id = :id")
-    suspend fun getMovieById(id: Int): MovieEntity
+    suspend fun getMovieById(id: Int): MovieEntity?
 
     @Query("SELECT * FROM MovieEntity WHERE category = :category")
     suspend fun getMovieListByCategory(category: String): List<MovieEntity>
+
+    @Query("SELECT * FROM MovieEntity WHERE category = 'popular' ORDER BY popularity DESC")
+    suspend fun getPopularMovieList(): List<MovieEntity>
+
+    @Query("SELECT * FROM MovieEntity WHERE vote_average = 0")
+    suspend fun getUpcomingMovieList(): List<MovieEntity>
 }

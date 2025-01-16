@@ -26,7 +26,8 @@ class MovieDetailsViewModel @Inject constructor(
     val movieDetailsState = _movieDetailsState.asStateFlow()
 
     init {
-        getMovie(movieId ?: -1)
+//        getMovie(movieId ?: -1)
+        getMovieFromApi(movieId ?: -1)
     }
 
     private fun getMovie(id: Int) {
@@ -36,6 +37,38 @@ class MovieDetailsViewModel @Inject constructor(
             }
 
             movieListRepository.getMovie(id).collectLatest { result ->
+                when (result) {
+                    is Resource.Error -> {
+                        _movieDetailsState.update {
+                            it.copy(isLoading = false)
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        _movieDetailsState.update {
+                            it.copy(isLoading = result.isLoading)
+                        }
+                    }
+
+                    is Resource.Success -> {
+                        result.data?.let { movie ->
+                            _movieDetailsState.update {
+                                it.copy(movie = movie)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getMovieFromApi(id: Int){
+        viewModelScope.launch(Dispatchers.IO) {
+            _movieDetailsState.update {
+                it.copy(isLoading = true)
+            }
+
+            movieListRepository.getMovieFromApi(id).collectLatest { result ->
                 when (result) {
                     is Resource.Error -> {
                         _movieDetailsState.update {

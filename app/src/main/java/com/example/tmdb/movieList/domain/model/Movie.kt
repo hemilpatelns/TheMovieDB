@@ -1,5 +1,8 @@
 package com.example.tmdb.movieList.domain.model
 
+import com.example.tmdb.movieList.data.remote.respond.Cast
+import com.example.tmdb.movieList.data.remote.respond.Crew
+
 data class Movie(
     val adult: Boolean,
     val backdrop_path: String,
@@ -15,5 +18,7 @@ data class Movie(
     val video: Boolean,
     val vote_average: Double,
     val vote_count: Int,
-    val category: String
-)
+    val category: String,
+    val cast: List<Cast> = emptyList(),
+    val crew: List<Crew> = emptyList()
+): Video()

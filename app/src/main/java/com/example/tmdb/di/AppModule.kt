@@ -3,7 +3,7 @@ package com.example.tmdb.di
 import android.app.Application
 import androidx.room.Room
 import com.example.tmdb.movieList.data.local.movie.MovieDatabase
-import com.example.tmdb.movieList.data.remote.MovieApi
+import com.example.tmdb.movieList.data.remote.CommonApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,13 +27,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesMovieApi(): MovieApi{
+    fun providesCommonApi(): CommonApi{
         return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(MovieApi.BASE_URL)
+            .baseUrl(CommonApi.BASE_URL)
             .client(client)
             .build()
-            .create(MovieApi::class.java)
+            .create(CommonApi::class.java)
     }
 
     @Provides
