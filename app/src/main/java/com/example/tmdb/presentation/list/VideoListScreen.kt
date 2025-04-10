@@ -1,5 +1,7 @@
 package com.example.tmdb.presentation.list
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,6 +70,7 @@ import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.SeriesCategory
 import com.example.tmdb.domain.util.shimmerEffect
 import com.example.tmdb.domain.util.toTitleCase
+import com.example.tmdb.presentation.components.SearchBar
 import com.example.tmdb.ui.theme.gradientBrushOne
 
 @Composable
@@ -115,7 +118,32 @@ fun VideoList(
         }
 
         item {
-            SearchScreen()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 20.dp, horizontal = 30.dp)
+                    .clip(RoundedCornerShape(50))
+//                    .border(2.dp, Color(0x8FFFFFFF), RoundedCornerShape(50))
+                    .background(Color(0xFF36076B))
+                    .clickable {
+                        navController.navigate(Screen.Search.rout)
+                    },
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ){
+                Text(
+                    "Search...",
+                    color = Color(0x8FFFFFFF),
+                    modifier = Modifier
+                        .padding(15.dp)
+                )
+                Icon(
+                    modifier = Modifier
+                        .padding(15.dp),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
+                    contentDescription = "Search",
+                    tint = Color(0x8FFFFFFF,)
+                )
+            }
         }
 
         item {
@@ -127,58 +155,6 @@ fun VideoList(
                 }
             )
         }
-    }
-}
-
-@Composable
-fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 20.dp, horizontal = 30.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // TextField for input
-        TextField(
-            value = query,
-            onValueChange = { onQueryChange(it) },
-            placeholder = { Text("Search", color = Color(0x8FFFFFFF)) },
-            singleLine = true,
-            modifier = Modifier
-                .weight(1f),
-            trailingIcon = {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_search), // Replace with your search icon
-                    contentDescription = "Search",
-                    tint = Color(0x8FFFFFFF)
-                )
-            },
-            shape = RoundedCornerShape(50.dp),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = Color(0xFF36076B),
-                unfocusedContainerColor = Color(0xFF36076B),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
-        )
-    }
-}
-
-@Composable
-fun SearchScreen() {
-    var searchQuery by remember { mutableStateOf("") }
-
-    Column {
-        SearchBar(
-            query = searchQuery,
-            onQueryChange = { searchQuery = it }
-        )
     }
 }
 

@@ -1,8 +1,10 @@
 package com.example.tmdb.di
 
 import com.example.tmdb.data.repository.MovieListRepositoryImpl
+import com.example.tmdb.data.repository.SearchResultsRepositoryImpl
 import com.example.tmdb.data.repository.SeriesRepositoryImpl
 import com.example.tmdb.domain.repository.MovieListRepository
+import com.example.tmdb.domain.repository.SearchResultsRepository
 import com.example.tmdb.domain.repository.SeriesRepository
 import dagger.Binds
 import dagger.Module
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindSeriesRepository(
         seriesRepositoryImpl: SeriesRepositoryImpl
     ): SeriesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSearchResultsRepository(
+        searchResultsRepositoryImpl: SearchResultsRepositoryImpl
+    ): SearchResultsRepository
 }

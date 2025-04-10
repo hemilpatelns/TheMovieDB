@@ -13,6 +13,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -27,16 +28,24 @@ import com.example.tmdb.presentation.details.SeriesDetails
 import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.toTitleCase
 import com.example.tmdb.presentation.details.VideoDetails
+import com.example.tmdb.presentation.search.SearchScreen
 import com.example.tmdb.ui.theme.gradientBrushOne
 
 
 @Composable
-fun BottomNavigation(navController: NavHostController = rememberNavController()) {
+fun BottomNavigation() {
     val nestedNavController = rememberNavController()
+    val navBackStackEntry by nestedNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Routes where bottom bar should be visible
+    val bottomBarRoutes = listOf(Screen.VideoList.rout, Screen.Favorites.rout)
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
-            BottomNavigationBar(nestedNavController)
+            if (currentRoute in bottomBarRoutes) {
+                BottomNavigationBar(nestedNavController)
+            }
         }
     ) {
         NavHost(
@@ -72,6 +81,9 @@ fun BottomNavigation(navController: NavHostController = rememberNavController())
             ) {
                 SeriesDetails(nestedNavController)
             }
+            composable(Screen.Search.rout) {
+                SearchScreen(nestedNavController)
+            }
         }
     }
 }
@@ -82,46 +94,45 @@ fun BottomNavigationBar(navController: NavHostController) {
         Screen.VideoList,
         Screen.Favorites
     )
-    val currentDestination = navController.currentBackStackEntryAsState().value?.destination
-    val bottomBarDestination = items.any {it.rout == currentDestination?.route}
-    if(bottomBarDestination){
-        NavigationBar(
-            containerColor = Color(0xFD303243),
-            tonalElevation = 10.dp
-        ) {
-            items.forEach { screen ->
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = if (screen == Screen.VideoList) Icons.Default.List else Icons.Default.Favorite,
-                            contentDescription = null
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = screen.rout.toTitleCase()
-                        )
-                    },
-                    selected = currentDestination?.route == screen.rout,
-                    onClick = {
-                        navController.navigate(screen.rout) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF8000FF),
-                        selectedTextColor = Color(0xFF8000FF),
-                        indicatorColor = Color(0xFD303243),
-                        unselectedIconColor = Color.White,
-                        unselectedTextColor = Color.White,
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    NavigationBar(
+        containerColor = Color(0xFD303243),
+        tonalElevation = 10.dp
+    ) {
+        items.forEach { screen ->
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        imageVector = if (screen == Screen.VideoList) Icons.Default.List else Icons.Default.Favorite,
+                        contentDescription = null
                     )
+                },
+                label = {
+                    Text(
+                        text = screen.rout.toTitleCase()
+                    )
+                },
+                selected = currentRoute == screen.rout,
+                onClick = {
+                    navController.navigate(screen.rout) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color(0xFF8000FF),
+                    selectedTextColor = Color(0xFF8000FF),
+                    indicatorColor = Color(0xFD303243),
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White,
                 )
-            }
+            )
         }
     }
+
 
 }

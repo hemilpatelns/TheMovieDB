@@ -7,4 +7,5 @@ sealed class Screen(val rout: String) {
     data object Details: Screen("details")
     data object SeriesDetails: Screen("series_details")
     data object Favorites: Screen("favorites")
+    data object Search: Screen("screen")
 }

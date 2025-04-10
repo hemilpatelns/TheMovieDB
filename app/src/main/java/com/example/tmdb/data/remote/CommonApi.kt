@@ -5,7 +5,9 @@ import com.example.tmdb.data.remote.respond.MovieDto
 import com.example.tmdb.data.remote.respond.MovieListDto
 import com.example.tmdb.data.remote.respond.SeriesDto
 import com.example.tmdb.data.remote.respond.SeriesListDto
+import com.example.tmdb.domain.model.SearchResponse
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -44,4 +46,12 @@ interface CommonApi {
         @Query("append_to_response") appendToResponse: String = "credits",
         @Query("api_key") apiKey: String = API_KEY
     ): SeriesDto
+
+    @GET("search/multi")
+    suspend fun getSearchResults(
+        @Query("query") query: String,
+        @Query("page") page: Int,
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("api_key") apiKey: String = API_KEY
+    ): SearchResponse
 }

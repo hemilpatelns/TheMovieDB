@@ -1,6 +1,7 @@
 package com.example.tmdb.presentation.list
 
 import com.example.tmdb.domain.model.Movie
+import com.example.tmdb.domain.model.SearchData
 import com.example.tmdb.domain.model.Series
 
 sealed class VideoListState
@@ -29,4 +30,10 @@ data class SeriesListState(
     val onTheAirSeriesList: List<Series> = emptyList(),
     val topRatedSeriesList: List<Series> = emptyList(),
     val favoriteSeriesList: List<Series> = emptyList()
+)
+
+data class SearchListState(
+    val isLoading: Boolean = false,
+    val searchListPage: Int = 1,
+    val searchList: List<SearchData> = emptyList()
 )
