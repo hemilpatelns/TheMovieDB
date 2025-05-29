@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,28 +39,14 @@ class MainActivity : ComponentActivity() {
                 composable(Screen.BottomNav.rout) {
                     BottomNavigation()
                 }
-//                composable(Screen.Details.rout + "/{movieId}",
-//                    arguments = listOf(
-//                        navArgument("movieId") {
-//                            type = NavType.IntType
-//                        }
-//                    )
-//                ) {
-//                    VideoDetails(navController)
-//                }
-//                composable(Screen.SeriesDetails.rout + "/{seriesId}",
-//                    arguments = listOf(
-//                        navArgument("seriesId") {
-//                            type = NavType.IntType
-//                        }
-//                    )
-//                ) {
-//                    SeriesDetails(navController)
-//                }
-//                composable(Screen.Favorites.rout){
-//                    FavoriteScreen(navController)
-//                }
             }
+        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 }

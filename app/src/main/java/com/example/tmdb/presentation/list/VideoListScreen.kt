@@ -25,9 +25,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -81,79 +84,82 @@ fun VideoList(
     var selectedCategory by remember {
         mutableStateOf("Movies")
     }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(gradientBrushOne),
-        contentPadding = PaddingValues(bottom = if (isEdgeToEdge) 40.dp else 0.dp)
-    ) {
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp)
-                    .padding(top = 50.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "What do you want to watch today?",
-                    style = TextStyle(
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    ),
-                    modifier = Modifier.weight(.7f),
-                )
-                Spacer(modifier = Modifier.width(15.dp))
-                Image(
+    val context = LocalContext.current
+    Scaffold(){ content ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradientBrushOne),
+            contentPadding = PaddingValues(bottom = if (isEdgeToEdge) content.calculateBottomPadding() else 0.dp)
+        ) {
+            item {
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .border(2.dp, Color.White, RoundedCornerShape(50))
-                        .padding(3.dp),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_person),
-                    contentDescription = ""
-                )
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp, horizontal = 30.dp)
-                    .clip(RoundedCornerShape(50))
-//                    .border(2.dp, Color(0x8FFFFFFF), RoundedCornerShape(50))
-                    .background(Color(0xFF36076B))
-                    .clickable {
-                        navController.navigate(Screen.Search.rout)
-                    },
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ){
-                Text(
-                    "Search...",
-                    color = Color(0x8FFFFFFF),
-                    modifier = Modifier
-                        .padding(15.dp)
-                )
-                Icon(
-                    modifier = Modifier
-                        .padding(15.dp),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
-                    contentDescription = "Search",
-                    tint = Color(0x8FFFFFFF,)
-                )
-            }
-        }
-
-        item {
-            CategorySelector(
-                navController,
-                categories = listOf("Movies", "Series", "Anime", "Novels", "Documentaries"),
-                onCategorySelected = {
-                    selectedCategory = it
+                        .fillMaxWidth()
+                        .padding(horizontal = 30.dp)
+                        .padding(top = 50.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "What do you want to watch today?",
+                        style = TextStyle(
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        ),
+                        modifier = Modifier.weight(.7f),
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Image(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .border(2.dp, Color.White, RoundedCornerShape(50))
+                            .padding(3.dp),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_person),
+                        contentDescription = ""
+                    )
                 }
-            )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp, horizontal = 30.dp)
+                        .clip(RoundedCornerShape(50))
+//                    .border(2.dp, Color(0x8FFFFFFF), RoundedCornerShape(50))
+                        .background(Color(0xFF36076B))
+                        .clickable {
+                            navController.navigate(Screen.Search.rout)
+                        },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ){
+                    Text(
+                        "Search...",
+                        color = Color(0x8FFFFFFF),
+                        modifier = Modifier
+                            .padding(15.dp)
+                    )
+                    Icon(
+                        modifier = Modifier
+                            .padding(15.dp),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
+                        contentDescription = "Search",
+                        tint = Color(0x8FFFFFFF,)
+                    )
+                }
+            }
+
+            item {
+                CategorySelector(
+                    navController,
+                    categories = listOf("Movies", "Series", "Novels", "Documentaries"),
+                    onCategorySelected = {
+                        selectedCategory = it
+                    }
+                )
+            }
         }
     }
 }

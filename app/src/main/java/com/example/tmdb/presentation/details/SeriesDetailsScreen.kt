@@ -330,20 +330,25 @@ fun SeriesDetails(navController: NavHostController) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 50.dp, end = 20.dp)
+            .padding(top = 50.dp)
+            .padding(horizontal = 20.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = {
+        IconButton(
+            onClick = {
                 navController.popBackStack()
-            }) {
-                Icon(
-                    tint = Color.White,
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back Button"
+            },
+            modifier = Modifier
+                .background(
+                    color = Color(0xA6303243),
+                    shape = RoundedCornerShape(50)
                 )
-            }
+                .size(40.dp)
+        ) {
+            Icon(
+                tint = Color.White,
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Back Button"
+            )
         }
         IconButton(
             onClick = {
