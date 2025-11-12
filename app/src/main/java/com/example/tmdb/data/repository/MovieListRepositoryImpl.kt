@@ -10,6 +10,7 @@ import com.example.tmdb.domain.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import okio.IOException
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -164,5 +165,9 @@ class MovieListRepositoryImpl @Inject constructor(
                 return@flow
             }
         }
+    }
+
+    override suspend fun getFavoriteMovieIds(): Flow<Set<Int>> {
+        return movieDatabase.movieDao.getFavoriteMovieIds().map { it.toSet() }
     }
 }

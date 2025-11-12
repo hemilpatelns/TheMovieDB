@@ -17,8 +17,7 @@ import com.example.tmdb.presentation.list.BottomNavigation
 import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.presentation.details.SeriesDetails
 import com.example.tmdb.presentation.details.VideoDetails
-import com.example.tmdb.presentation.list.FavoriteScreen
-import com.example.tmdb.presentation.list.VideoList
+import com.example.tmdb.presentation.search.SearchScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -37,7 +36,30 @@ class MainActivity : ComponentActivity() {
                     HomeScreen(navController)
                 }
                 composable(Screen.BottomNav.rout) {
-                    BottomNavigation()
+                    BottomNavigation(navController)
+                }
+                composable(
+                    Screen.Details.rout + "/{movieId}",
+                    arguments = listOf(
+                        navArgument("movieId") {
+                            type = NavType.IntType
+                        }
+                    )
+                ) {
+                    VideoDetails(navController)
+                }
+                composable(
+                    Screen.SeriesDetails.rout + "/{seriesId}",
+                    arguments = listOf(
+                        navArgument("seriesId") {
+                            type = NavType.IntType
+                        }
+                    )
+                ) {
+                    SeriesDetails(navController)
+                }
+                composable(Screen.Search.rout) {
+                    SearchScreen(navController)
                 }
             }
         }

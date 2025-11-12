@@ -20,5 +20,6 @@ data class Movie(
     val vote_count: Int,
     val category: String,
     val cast: List<Cast> = emptyList(),
-    val crew: List<Crew> = emptyList()
+    val crew: List<Crew> = emptyList(),
+    val isFavorite: Boolean = false
 ): Video()

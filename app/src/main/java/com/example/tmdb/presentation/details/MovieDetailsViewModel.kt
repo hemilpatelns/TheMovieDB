@@ -63,7 +63,7 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun getMovieFromApi(id: Int){
+    fun getMovieFromApi(id: Int){
         viewModelScope.launch(Dispatchers.IO) {
             _movieDetailsState.update {
                 it.copy(isLoading = true)

@@ -24,12 +24,11 @@ class MovieListViewModel @Inject constructor(
     val movieListState = _movieListState.asStateFlow()
 
     init {
-//        getPopularMovieList(false)
-//        getUpcomingMovieList(false)
-        getMovieList(MovieCategory.NOW_PLAYING)
-        getMovieList(MovieCategory.POPULAR)
-        getMovieList(MovieCategory.TOP_RATED)
-        getMovieList(MovieCategory.UPCOMING)
+//        getMovieList(MovieCategory.NOW_PLAYING)
+//        getMovieList(MovieCategory.POPULAR)
+//        getMovieList(MovieCategory.TOP_RATED)
+//        getMovieList(MovieCategory.UPCOMING)
+//        observeFavoriteIds()
     }
 
     fun onEvent(event: VideoListUiEvent) {
@@ -48,79 +47,8 @@ class MovieListViewModel @Inject constructor(
             }
         }
     }
-//    private fun getPopularMovieList(forceFetchFromRemote: Boolean) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _movieListState.update {
-//                it.copy(isLoading = true)
-//            }
-//            movieListRepository.getMovieList(
-////                forceFetchFromRemote,
-//                Category.POPULAR,
-//                movieListState.value.popularMovieListPage
-//            ).collectLatest { result ->
-//                when(result){
-//                    is Resource.Error -> {
-//                        _movieListState.update {
-//                            it.copy(isLoading = false)
-//                        }
-//                    }
-//                    is Resource.Success -> {
-//                        result.data?.let {popularList ->
-//                            _movieListState.update {
-//                                it.copy(
-//                                    popularMovieList = movieListState.value.popularMovieList + popularList,
-//                                    popularMovieListPage = movieListState.value.popularMovieListPage + 1
-//                                )
-//                            }
-//                        }
-//                    }
-//                    is Resource.Loading -> {
-//                        _movieListState.update {
-//                            it.copy(isLoading = result.isLoading)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 
-//    private fun getUpcomingMovieList(forceFetchFromRemote: Boolean) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _movieListState.update {
-//                it.copy(isLoading = true)
-//            }
-//            movieListRepository.getMovieList(
-////                forceFetchFromRemote,
-//                Category.UPCOMING,
-//                movieListState.value.upcomingMovieListPage
-//            ).collectLatest { result ->
-//                when(result){
-//                    is Resource.Error -> {
-//                        _movieListState.update {
-//                            it.copy(isLoading = false)
-//                        }
-//                    }
-//                    is Resource.Success -> {
-//                        result.data?.let {upcomingList ->
-//                            _movieListState.update {
-//                                it.copy(
-//                                    upcomingMovieList = movieListState.value.upcomingMovieList + upcomingList,
-//                                    upcomingMovieListPage = movieListState.value.upcomingMovieListPage + 1
-//                                )
-//                            }
-//                        }
-//                    }
-//                    is Resource.Loading -> {
-//                        _movieListState.update {
-//                            it.copy(isLoading = result.isLoading)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    private fun getMovieList(category: String) {
+    fun getMovieList(category: String) {
         val moviePage: Int
         val movieList: List<Movie>
 
@@ -147,10 +75,10 @@ class MovieListViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            _movieListState.update {
-                it.copy(isLoading = true)
-            }
+        viewModelScope.launch {
+//            _movieListState.update {
+//                it.copy(isLoading = true)
+//            }
             movieListRepository.getMovieList(
                 category,
                 moviePage
@@ -200,36 +128,51 @@ class MovieListViewModel @Inject constructor(
                     }
                 }
             }
+            movieListRepository.getFavoriteMovieIds().collectLatest { favoriteIds ->
+                _movieListState.update { state ->
+                    state.copy(
+                        nowPlayingMovieList = state.nowPlayingMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        popularMovieList = state.popularMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        topRatedMovieList = state.topRatedMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        upcomingMovieList = state.upcomingMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        favoriteMovieList = state.favoriteMovieList.map { it.copy(isFavorite = it.id in favoriteIds) }
+                    )
+                }
+            }
         }
     }
 
-    fun getFavoriteMovies() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _movieListState.update {
-                it.copy(isLoading = true)
-            }
-            movieListRepository.getFavoriteMovies()
-                .collectLatest { result ->
-                    when(result) {
-                        is Resource.Error -> {
-                            _movieListState.update {
-                                it.copy(isLoading = false)
-                            }
-                        }
-                        is Resource.Success -> {
-                            result.data?.let { list ->
-                                _movieListState.update {
-                                    it.copy(favoriteMovieList = list)
-                                }
-                            }
-                        }
-                        is Resource.Loading -> {
-                            _movieListState.update {
-                                it.copy(isLoading = false)
-                            }
-                        }
-                    }
+    fun toggleFavorite(movieId: Int) {
+        viewModelScope.launch {
+            val movie = _movieListState.value.nowPlayingMovieList
+                .plus(_movieListState.value.popularMovieList)
+                .plus(_movieListState.value.topRatedMovieList)
+                .plus(_movieListState.value.upcomingMovieList)
+                .firstOrNull { it.id == movieId }
+
+            movie?.let {
+                if (it.isFavorite) {
+                    movieListRepository.removeFavorite(it.id)
+                } else {
+                    movieListRepository.addFavorite(it.id)
                 }
+            }
+        }
+    }
+
+    fun observeFavoriteIds() {
+        viewModelScope.launch {
+            movieListRepository.getFavoriteMovieIds().collectLatest { favoriteIds ->
+                _movieListState.update { state ->
+                    state.copy(
+                        nowPlayingMovieList = state.nowPlayingMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        popularMovieList = state.popularMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        topRatedMovieList = state.topRatedMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        upcomingMovieList = state.upcomingMovieList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        favoriteMovieList = state.favoriteMovieList.map { it.copy(isFavorite = it.id in favoriteIds) }
+                    )
+                }
+            }
         }
     }
 }

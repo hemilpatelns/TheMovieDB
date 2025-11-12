@@ -1,7 +1,5 @@
 package com.example.tmdb.presentation.list
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,17 +21,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,39 +38,64 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import coil.size.Size
 import com.example.tmdb.R
-import com.example.tmdb.data.remote.CommonApi
-import com.example.tmdb.domain.model.Movie
-import com.example.tmdb.domain.model.Series
 import com.example.tmdb.domain.util.Constants
-import com.example.tmdb.domain.util.MovieCategory
 import com.example.tmdb.domain.util.FunctionUtil
+import com.example.tmdb.domain.util.MovieCategory
 import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.SeriesCategory
-import com.example.tmdb.domain.util.shimmerEffect
 import com.example.tmdb.domain.util.toTitleCase
-import com.example.tmdb.presentation.components.SearchBar
+import com.example.tmdb.presentation.components.VideoCard
+import com.example.tmdb.presentation.details.MovieDetailsState
+import com.example.tmdb.presentation.details.MovieDetailsViewModel
 import com.example.tmdb.ui.theme.gradientBrushOne
+
+@Composable
+fun VideoListScreen(navController: NavHostController){
+    val movieListViewModel = hiltViewModel<MovieListViewModel>()
+    val movieListState by movieListViewModel.movieListState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        movieListViewModel.getMovieList(MovieCategory.NOW_PLAYING)
+        movieListViewModel.getMovieList(MovieCategory.POPULAR)
+        movieListViewModel.getMovieList(MovieCategory.TOP_RATED)
+        movieListViewModel.getMovieList(MovieCategory.UPCOMING)
+    }
+
+    VideoList(
+        navController = navController,
+        movieListState = movieListState,
+        onUserAction = { action ->
+            when(action){
+                is VideoListScreenActions.OnSearchClick -> {
+                    navController.navigate(Screen.Search.rout)
+                }
+                is VideoListScreenActions.OnVideoCardClick -> {
+                    navController.navigate(Screen.Details.rout + "/${action.id}")
+                }
+                is VideoListScreenActions.OnVideoCardLongClick -> {
+                }
+                is VideoListScreenActions.OnFavoriteButtonClick -> {
+                }
+            }
+        }
+    )
+}
 
 @Composable
 fun VideoList(
     navController: NavHostController,
+    movieListState: MovieListState,
+    onUserAction: (VideoListScreenActions) -> Unit
 ) {
     val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     var selectedCategory by remember {
@@ -131,7 +148,7 @@ fun VideoList(
 //                    .border(2.dp, Color(0x8FFFFFFF), RoundedCornerShape(50))
                         .background(Color(0xFF36076B))
                         .clickable {
-                            navController.navigate(Screen.Search.rout)
+                            onUserAction(VideoListScreenActions.OnSearchClick)
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ){
@@ -165,163 +182,13 @@ fun VideoList(
 }
 
 @Composable
-fun VideoCard(
-    movie: Movie,
-    navController: NavHostController,
-    width: Dp,
-    height: Dp
-) {
-    val context = LocalContext.current
-    val imageState = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(context)
-            .data(CommonApi.IMAGE_BASE_URL + movie.poster_path)
-            .size(Size.ORIGINAL)
-            .build()
-    ).state
-
-    Box(
-        contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier
-            .width(width)
-            .height(height)
-            .clip(RoundedCornerShape(10))
-            .clickable {
-                navController.navigate(Screen.Details.rout + "/${movie.id}")
-            },
-    ) {
-        if (imageState is AsyncImagePainter.State.Error) {
-            Box(
-                modifier = Modifier
-                    .width(width)
-                    .height(height)
-                    .clip(RoundedCornerShape(10))
-                    .shimmerEffect(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Warning,
-                    contentDescription = movie.title
-                )
-            }
-        }
-
-        if (imageState is AsyncImagePainter.State.Success) {
-            Image(
-                modifier = Modifier
-                    .width(width)
-                    .height(height)
-                    .clip(RoundedCornerShape(10)),
-                painter = imageState.painter,
-                contentDescription = movie.title,
-                contentScale = ContentScale.Crop
-            )
-        }
-        if (imageState is AsyncImagePainter.State.Loading) {
-            Box(
-                modifier = Modifier
-                    .width(width)
-                    .height(height)
-                    .clip(RoundedCornerShape(10))
-                    .shimmerEffect(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = movie.title,
-                    color = Color.White,
-                    style = TextStyle(fontWeight = FontWeight.SemiBold),
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .padding(horizontal = 5.dp, vertical = 8.dp)
-                        .align(Alignment.BottomCenter)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SeriesVideoCard(
-    series: Series,
-    navController: NavHostController,
-    width: Dp,
-    height: Dp
-) {
-    val context = LocalContext.current
-    val imageState = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(context)
-            .data(CommonApi.IMAGE_BASE_URL + series.posterPath)
-            .size(Size.ORIGINAL)
-            .build()
-    ).state
-
-    Box(
-        contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier
-            .width(width)
-            .height(height)
-            .clip(RoundedCornerShape(10))
-            .clickable {
-                navController.navigate(Screen.SeriesDetails.rout + "/${series.id}")
-            }
-    ) {
-        if (imageState is AsyncImagePainter.State.Error) {
-            Box(
-                modifier = Modifier
-                    .width(width)
-                    .height(height)
-                    .clip(RoundedCornerShape(10))
-                    .shimmerEffect(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Warning,
-                    contentDescription = series.name
-                )
-            }
-        }
-
-        if (imageState is AsyncImagePainter.State.Success) {
-            Image(
-                modifier = Modifier
-                    .width(width)
-                    .height(height)
-                    .clip(RoundedCornerShape(10)),
-                painter = imageState.painter,
-                contentDescription = series.name,
-                contentScale = ContentScale.Crop
-            )
-        }
-        if (imageState is AsyncImagePainter.State.Loading) {
-            Box(
-                modifier = Modifier
-                    .width(width)
-                    .height(height)
-                    .clip(RoundedCornerShape(10))
-                    .shimmerEffect(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = series.name,
-                    color = Color.White,
-                    style = TextStyle(fontWeight = FontWeight.SemiBold),
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .padding(horizontal = 5.dp, vertical = 8.dp)
-                        .align(Alignment.BottomCenter)
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
 fun MovieVideoList(
     videoType: String,
     movieListState: MovieListState,
     navController: NavHostController,
     onEvent: (VideoListUiEvent) -> Unit,
-    lazyListState: LazyListState
+    lazyListState: LazyListState,
+    onToggleFavorite: (Int) -> Unit
 ) {
     // Determine the appropriate movie list based on the video type
     val movieList = when (videoType) {
@@ -358,10 +225,16 @@ fun MovieVideoList(
             items(movieList.size) { index ->
                 Spacer(modifier = Modifier.padding(start = 30.dp))
                 VideoCard(
-                    movie = movieList[index],
                     navController = navController,
-                    150.dp,
-                    230.dp
+                    width = 150.dp,
+                    height = 230.dp,
+                    poster = movieList[index].poster_path,
+                    id = movieList[index].id,
+                    title = movieList[index].title,
+                    isFavorite = movieList[index].isFavorite,
+                    route = Screen.Details.rout,
+                    onToggleFavorite = onToggleFavorite,
+                    onVideoCardClick = {}
                 )
                 Spacer(modifier = Modifier.padding(end = 30.dp))
 
@@ -380,7 +253,8 @@ fun SeriesVideoList(
     seriesListState: SeriesListState,
     navController: NavHostController,
     onEvent: (VideoListUiEvent) -> Unit,
-    lazyListState: LazyListState
+    lazyListState: LazyListState,
+    onToggleFavorite: (Int) -> Unit
 ) {
     // Determine the appropriate movie list based on the video type
     val seriesList = when (videoType) {
@@ -416,11 +290,17 @@ fun SeriesVideoList(
         ) {
             items(seriesList.size) { index ->
                 Spacer(modifier = Modifier.padding(start = 30.dp))
-                SeriesVideoCard(
-                    series = seriesList[index],
+                VideoCard(
                     navController = navController,
-                    150.dp,
-                    230.dp
+                    width = 150.dp,
+                    height = 230.dp,
+                    poster = seriesList[index].posterPath,
+                    id = seriesList[index].id,
+                    title = seriesList[index].name,
+                    isFavorite = seriesList[index].isFavorite,
+                    route = Screen.SeriesDetails.rout,
+                    onToggleFavorite = onToggleFavorite,
+                    onVideoCardClick = {}
                 )
                 Spacer(modifier = Modifier.padding(end = 30.dp))
 
@@ -542,28 +422,40 @@ private fun MovieTab(
             movieListState = movieListState,
             navController = navController,
             onEvent = movieListViewModel::onEvent,
-            lazyListState = nowPlayingListState
+            lazyListState = nowPlayingListState,
+            onToggleFavorite = {
+                movieListViewModel.toggleFavorite(it)
+            }
         )
         MovieVideoList(
             MovieCategory.POPULAR,
             movieListState = movieListState,
             navController = navController,
             onEvent = movieListViewModel::onEvent,
-            lazyListState = popularListState
+            lazyListState = popularListState,
+            onToggleFavorite = {
+                movieListViewModel.toggleFavorite(it)
+            }
         )
         MovieVideoList(
             MovieCategory.TOP_RATED,
             movieListState = movieListState,
             navController = navController,
             onEvent = movieListViewModel::onEvent,
-            lazyListState = topRatedListState
+            lazyListState = topRatedListState,
+            onToggleFavorite = {
+                movieListViewModel.toggleFavorite(it)
+            }
         )
         MovieVideoList(
             MovieCategory.UPCOMING,
             movieListState = movieListState,
             navController = navController,
             onEvent = movieListViewModel::onEvent,
-            lazyListState = upcomingListState
+            lazyListState = upcomingListState,
+            onToggleFavorite = {
+                movieListViewModel.toggleFavorite(it)
+            }
         )
     }
 }
@@ -585,28 +477,47 @@ private fun SeriesTab(
             seriesListState = seriesListState,
             navController = navController,
             onEvent = seriesViewModel::onEvent,
-            lazyListState = airingTodayListState
+            lazyListState = airingTodayListState,
+            onToggleFavorite = {
+                seriesViewModel.toggleFavorite(it)
+            }
         )
         SeriesVideoList(
             SeriesCategory.ON_THE_AIR,
             seriesListState = seriesListState,
             navController = navController,
             onEvent = seriesViewModel::onEvent,
-            lazyListState = onTheAirListState
+            lazyListState = onTheAirListState,
+            onToggleFavorite = {
+                seriesViewModel.toggleFavorite(it)
+            }
         )
         SeriesVideoList(
             SeriesCategory.POPULAR,
             seriesListState = seriesListState,
             navController = navController,
             onEvent = seriesViewModel::onEvent,
-            lazyListState = popularListState
+            lazyListState = popularListState,
+            onToggleFavorite = {
+                seriesViewModel.toggleFavorite(it)
+            }
         )
         SeriesVideoList(
             SeriesCategory.TOP_RATED,
             seriesListState = seriesListState,
             navController = navController,
             onEvent = seriesViewModel::onEvent,
-            lazyListState = topRatedListState
+            lazyListState = topRatedListState,
+            onToggleFavorite = {
+                seriesViewModel.toggleFavorite(it)
+            }
         )
     }
+}
+
+sealed class VideoListScreenActions{
+    data object OnSearchClick: VideoListScreenActions()
+    data class OnVideoCardClick(val id: Int): VideoListScreenActions()
+    data class OnVideoCardLongClick(val id: Int): VideoListScreenActions()
+    data class OnFavoriteButtonClick(val id: Int): VideoListScreenActions()
 }

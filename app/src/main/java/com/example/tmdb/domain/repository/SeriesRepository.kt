@@ -21,4 +21,6 @@ interface SeriesRepository {
     suspend fun isFavorite(seriesId: Int): Flow<Boolean>
 
     suspend fun getFavoriteSeries(): Flow<Resource<List<Series>>>
+
+    suspend fun getFavoriteSeriesIds(): Flow<Set<Int>>
 }

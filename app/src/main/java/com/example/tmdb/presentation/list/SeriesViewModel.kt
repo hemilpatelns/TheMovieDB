@@ -72,10 +72,10 @@ class SeriesViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            _seriesListState.update {
-                it.copy(isLoading = true)
-            }
+        viewModelScope.launch {
+//            _seriesListState.update {
+//                it.copy(isLoading = true)
+//            }
             seriesRepository.getSeriesList(
                 category,
                 seriesPage
@@ -122,8 +122,38 @@ class SeriesViewModel @Inject constructor(
                     }
                 }
             }
+            seriesRepository.getFavoriteSeriesIds().collectLatest { favoriteIds ->
+                _seriesListState.update { state ->
+                    state.copy(
+                        airingTodaySeriesList = state.airingTodaySeriesList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        onTheAirSeriesList = state.onTheAirSeriesList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        popularSeriesList = state.popularSeriesList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        topRatedSeriesList = state.topRatedSeriesList.map { it.copy(isFavorite = it.id in favoriteIds) },
+                        favoriteSeriesList = state.favoriteSeriesList.map { it.copy(isFavorite = it.id in favoriteIds) }
+                    )
+                }
+            }
         }
     }
+
+    fun toggleFavorite(seriesId: Int) {
+        viewModelScope.launch {
+            val movie = _seriesListState.value.airingTodaySeriesList
+                .plus(_seriesListState.value.onTheAirSeriesList)
+                .plus(_seriesListState.value.popularSeriesList)
+                .plus(_seriesListState.value.topRatedSeriesList)
+                .firstOrNull { it.id == seriesId }
+
+            movie?.let {
+                if (it.isFavorite) {
+                    seriesRepository.removeFavorite(it.id)
+                } else {
+                    seriesRepository.addFavorite(it.id)
+                }
+            }
+        }
+    }
+
     fun getFavoriteSeries() {
         viewModelScope.launch(Dispatchers.IO) {
             _seriesListState.update {
@@ -140,13 +170,16 @@ class SeriesViewModel @Inject constructor(
                         is Resource.Success -> {
                             result.data?.let { list ->
                                 _seriesListState.update {
-                                    it.copy(favoriteSeriesList = list)
+                                    it.copy(
+                                        isLoading = false,
+                                        favoriteSeriesList = list
+                                    )
                                 }
                             }
                         }
                         is Resource.Loading -> {
                             _seriesListState.update {
-                                it.copy(isLoading = false)
+                                it.copy(isLoading = true)
                             }
                         }
                     }

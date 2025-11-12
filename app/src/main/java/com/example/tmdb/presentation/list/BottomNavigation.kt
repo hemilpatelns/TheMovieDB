@@ -18,22 +18,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.example.tmdb.presentation.details.SeriesDetails
 import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.toTitleCase
-import com.example.tmdb.presentation.details.VideoDetails
-import com.example.tmdb.presentation.search.SearchScreen
+import com.example.tmdb.presentation.favorites.FavoriteScreen
 import com.example.tmdb.ui.theme.gradientBrushOne
 
 
 @Composable
-fun BottomNavigation() {
+fun BottomNavigation(navController: NavHostController) {
     val nestedNavController = rememberNavController()
     val navBackStackEntry by nestedNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -56,34 +52,12 @@ fun BottomNavigation() {
             startDestination = Screen.VideoList.rout
         ) {
             composable(Screen.VideoList.rout) {
-                VideoList(nestedNavController)
+                VideoListScreen(navController)
             }
             composable(Screen.Favorites.rout) {
-                FavoriteScreen(nestedNavController)
+                FavoriteScreen(navController)
             }
-            composable(
-                Screen.Details.rout + "/{movieId}",
-                arguments = listOf(
-                    navArgument("movieId") {
-                        type = NavType.IntType
-                    }
-                )
-            ) {
-                VideoDetails(nestedNavController)
-            }
-            composable(
-                Screen.SeriesDetails.rout + "/{seriesId}",
-                arguments = listOf(
-                    navArgument("seriesId") {
-                        type = NavType.IntType
-                    }
-                )
-            ) {
-                SeriesDetails(nestedNavController)
-            }
-            composable(Screen.Search.rout) {
-                SearchScreen(nestedNavController)
-            }
+
         }
     }
 }

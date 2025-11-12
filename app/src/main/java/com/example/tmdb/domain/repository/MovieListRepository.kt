@@ -24,4 +24,6 @@ interface MovieListRepository {
     suspend fun isFavorite(movieId: Int): Flow<Boolean>
 
     suspend fun getFavoriteMovies(): Flow<Resource<List<Movie>>>
+
+    suspend fun getFavoriteMovieIds(): Flow<Set<Int>>
 }

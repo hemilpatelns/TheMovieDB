@@ -1,4 +1,4 @@
-package com.example.tmdb.presentation.list
+package com.example.tmdb.presentation.favorites
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.tmdb.domain.util.FunctionUtil
+import com.example.tmdb.domain.util.Screen
+import com.example.tmdb.presentation.components.VideoCard
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,17 +42,15 @@ fun TabLayout(navController: NavHostController) {
     val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     val tabs = listOf("Movies", "Series")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
-    val movieListViewModel = hiltViewModel<MovieListViewModel>()
-    val movieListState = movieListViewModel.movieListState.collectAsState().value
-    val seriesListViewModel = hiltViewModel<SeriesViewModel>()
-    val seriesListState = seriesListViewModel.seriesListState.collectAsState().value
+    val favoriteListViewModel = hiltViewModel<FavoriteListViewModel>()
+    val favoriteListState by favoriteListViewModel.favoriteListState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val favoriteMovieListState = rememberLazyGridState()
     val favoriteSeriesListState = rememberLazyGridState()
 
     LaunchedEffect(Unit) {
-        movieListViewModel.getFavoriteMovies()
-        seriesListViewModel.getFavoriteSeries()
+        favoriteListViewModel.getFavoriteMovies()
+        favoriteListViewModel.getFavoriteSeries()
     }
 
     Column(
@@ -79,8 +80,22 @@ fun TabLayout(navController: NavHostController) {
             verticalAlignment = Alignment.Top
         ) { page ->
             when (page) {
-                0 -> FavoriteMovieList(movieListState, navController, favoriteMovieListState)
-                1 -> FavoriteSeriesList(seriesListState, navController, favoriteSeriesListState)
+                0 -> FavoriteMovieList(
+                    movieListState = favoriteListState,
+                    navController = navController,
+                    lazyGridState = favoriteMovieListState,
+                    onToggleFavorite = {
+                        favoriteListViewModel.toggleFavorite(it, "movie")
+                    }
+                )
+                1 -> FavoriteSeriesList(
+                    seriesListState = favoriteListState,
+                    navController = navController,
+                    lazyGridState = favoriteSeriesListState,
+                    onToggleFavorite = {
+                        favoriteListViewModel.toggleFavorite(it, "series")
+                    }
+                )
             }
         }
     }
@@ -88,9 +103,10 @@ fun TabLayout(navController: NavHostController) {
 
 @Composable
 fun FavoriteMovieList(
-    movieListState: MovieListState,
+    movieListState: FavoriteListState,
     navController: NavHostController,
-    lazyGridState: LazyGridState
+    lazyGridState: LazyGridState,
+    onToggleFavorite: (Int) -> Unit
 ) {
     val movieList = movieListState.favoriteMovieList
     if (movieList.isEmpty() && movieListState.isLoading) {
@@ -112,10 +128,16 @@ fun FavoriteMovieList(
         ) {
             items(movieList.size) { index ->
                 VideoCard(
-                    movie = movieList[index],
                     navController = navController,
-                    200.dp,
-                    250.dp
+                    width = 200.dp,
+                    height = 250.dp,
+                    poster = movieList[index].poster_path,
+                    id = movieList[index].id,
+                    title = movieList[index].title,
+                    isFavorite = movieList[index].isFavorite,
+                    route = Screen.Details.rout,
+                    onToggleFavorite = onToggleFavorite,
+                    onVideoCardClick = {}
                 )
             }
         }
@@ -124,9 +146,10 @@ fun FavoriteMovieList(
 
 @Composable
 fun FavoriteSeriesList(
-    seriesListState: SeriesListState,
+    seriesListState: FavoriteListState,
     navController: NavHostController,
-    lazyGridState: LazyGridState
+    lazyGridState: LazyGridState,
+    onToggleFavorite: (Int) -> Unit
 ) {
     val seriesList = seriesListState.favoriteSeriesList
     if (seriesList.isEmpty() && seriesListState.isLoading) {
@@ -147,11 +170,17 @@ fun FavoriteSeriesList(
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             items(seriesList.size) { index ->
-                SeriesVideoCard(
-                    series = seriesList[index],
+                VideoCard(
                     navController = navController,
-                    200.dp,
-                    250.dp
+                    width = 200.dp,
+                    height = 250.dp,
+                    poster = seriesList[index].posterPath,
+                    id = seriesList[index].id,
+                    title = seriesList[index].name,
+                    isFavorite = seriesList[index].isFavorite,
+                    route = Screen.SeriesDetails.rout,
+                    onToggleFavorite = onToggleFavorite,
+                    onVideoCardClick = {}
                 )
             }
         }
