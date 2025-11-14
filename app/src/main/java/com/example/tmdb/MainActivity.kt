@@ -15,8 +15,8 @@ import androidx.navigation.navArgument
 import com.example.tmdb.presentation.home.HomeScreen
 import com.example.tmdb.presentation.list.BottomNavigation
 import com.example.tmdb.domain.util.Screen
-import com.example.tmdb.presentation.details.SeriesDetails
-import com.example.tmdb.presentation.details.VideoDetails
+import com.example.tmdb.presentation.details.series.SeriesDetails
+import com.example.tmdb.presentation.details.movie.VideoDetails
 import com.example.tmdb.presentation.search.SearchScreen
 import dagger.hilt.android.AndroidEntryPoint
 

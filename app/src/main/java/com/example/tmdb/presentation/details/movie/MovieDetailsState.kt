@@ -1,4 +1,4 @@
-package com.example.tmdb.presentation.details
+package com.example.tmdb.presentation.details.movie
 
 import com.example.tmdb.domain.model.Movie
 

@@ -30,19 +30,12 @@ class SeriesViewModel @Inject constructor(
         getSeriesList(SeriesCategory.TOP_RATED)
     }
 
-    fun onEvent(event: VideoListUiEvent){
-        when(event){
-            VideoListUiEvent.Navigate -> {
-
-            }
-            is VideoListUiEvent.Paginate -> {
-                when (event.category) {
-                    SeriesCategory.AIRING_TODAY,
-                    SeriesCategory.ON_THE_AIR,
-                    SeriesCategory.POPULAR,
-                    SeriesCategory.TOP_RATED -> getSeriesList(event.category)
-                }
-            }
+    fun paginateList(category: String) {
+        when (category) {
+            SeriesCategory.AIRING_TODAY,
+            SeriesCategory.ON_THE_AIR,
+            SeriesCategory.POPULAR,
+            SeriesCategory.TOP_RATED -> getSeriesList(category)
         }
     }
 

@@ -1,4 +1,4 @@
-package com.example.tmdb.presentation.details
+package com.example.tmdb.presentation.details.series
 
 import com.example.tmdb.domain.model.Series
 

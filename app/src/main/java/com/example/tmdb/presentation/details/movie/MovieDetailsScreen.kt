@@ -1,4 +1,4 @@
-package com.example.tmdb.presentation.details
+package com.example.tmdb.presentation.details.movie
 
 import android.content.Context
 import androidx.compose.foundation.BorderStroke

@@ -23,28 +23,12 @@ class MovieListViewModel @Inject constructor(
     private var _movieListState = MutableStateFlow(MovieListState())
     val movieListState = _movieListState.asStateFlow()
 
-    init {
-//        getMovieList(MovieCategory.NOW_PLAYING)
-//        getMovieList(MovieCategory.POPULAR)
-//        getMovieList(MovieCategory.TOP_RATED)
-//        getMovieList(MovieCategory.UPCOMING)
-//        observeFavoriteIds()
-    }
-
-    fun onEvent(event: VideoListUiEvent) {
-        when (event) {
-            VideoListUiEvent.Navigate -> {
-
-            }
-
-            is VideoListUiEvent.Paginate -> {
-                when (event.category) {
-                    MovieCategory.NOW_PLAYING,
-                    MovieCategory.POPULAR,
-                    MovieCategory.TOP_RATED,
-                    MovieCategory.UPCOMING -> getMovieList(event.category)
-                }
-            }
+    fun paginateList(category: String) {
+        when (category) {
+            MovieCategory.NOW_PLAYING,
+            MovieCategory.POPULAR,
+            MovieCategory.TOP_RATED,
+            MovieCategory.UPCOMING -> getMovieList(category)
         }
     }
 
