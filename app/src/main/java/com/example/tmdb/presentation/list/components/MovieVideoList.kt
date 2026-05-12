@@ -23,6 +23,7 @@ import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.toTitleCase
 import com.example.tmdb.presentation.components.VideoCard
 import com.example.tmdb.presentation.list.MovieListState
+import com.example.tmdb.presentation.list.VideoListScreenActions
 
 @Composable
 fun MovieVideoList(
@@ -30,6 +31,7 @@ fun MovieVideoList(
     movieListState: MovieListState,
     navController: NavHostController,
     lazyListState: LazyListState,
+    onToggleVideoCardUi: (String, Int) -> Unit,
     onToggleFavorite: (Int, String) -> Unit,
     onListEnd: (String, String) -> Unit,
 ) {
@@ -74,8 +76,12 @@ fun MovieVideoList(
                     poster = movieList[index].poster_path,
                     id = movieList[index].id,
                     title = movieList[index].title,
+                    showLongPressUi = movieList[index].showLongClickUi,
                     isFavorite = movieList[index].isFavorite,
                     route = Screen.Details.rout,
+                    onToggleVideoCardUi = { id ->
+                        onToggleVideoCardUi("movie", id)
+                    },
                     onToggleFavorite = { id ->
                         onToggleFavorite(id, "movie")
                     },

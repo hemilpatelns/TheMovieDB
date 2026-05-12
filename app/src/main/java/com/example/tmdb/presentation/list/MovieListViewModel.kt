@@ -1,5 +1,7 @@
 package com.example.tmdb.presentation.list
 
+import android.R.attr.category
+import android.R.attr.type
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tmdb.domain.model.Movie
@@ -22,6 +24,13 @@ class MovieListViewModel @Inject constructor(
 
     private var _movieListState = MutableStateFlow(MovieListState())
     val movieListState = _movieListState.asStateFlow()
+
+    init {
+        getMovieList(MovieCategory.NOW_PLAYING)
+        getMovieList(MovieCategory.POPULAR)
+        getMovieList(MovieCategory.TOP_RATED)
+        getMovieList(MovieCategory.UPCOMING)
+    }
 
     fun paginateList(category: String) {
         when (category) {
@@ -156,6 +165,62 @@ class MovieListViewModel @Inject constructor(
                         favoriteMovieList = state.favoriteMovieList.map { it.copy(isFavorite = it.id in favoriteIds) }
                     )
                 }
+            }
+        }
+    }
+
+    fun onMovieLongClick(category: String, movieId: Int) {
+        _movieListState.update { currentState ->
+            when(category) {
+                MovieCategory.NOW_PLAYING -> {
+                    currentState.copy(
+                        nowPlayingMovieList = currentState.nowPlayingMovieList.map {
+                            if(it.id == movieId){
+                                it.copy(
+                                    showLongClickUi = !it.showLongClickUi
+                                )
+                            } else it
+                        }
+                    )
+                }
+
+                MovieCategory.POPULAR -> {
+                    currentState.copy(
+                        popularMovieList = currentState.popularMovieList.map {
+                            if(it.id == movieId){
+                                it.copy(
+                                    showLongClickUi = !it.showLongClickUi
+                                )
+                            } else it
+                        }
+                    )
+                }
+
+                MovieCategory.UPCOMING -> {
+                    currentState.copy(
+                        upcomingMovieList = currentState.upcomingMovieList.map {
+                            if(it.id == movieId){
+                                it.copy(
+                                    showLongClickUi = !it.showLongClickUi
+                                )
+                            } else it
+                        }
+                    )
+                }
+
+                MovieCategory.TOP_RATED -> {
+                    currentState.copy(
+                        topRatedMovieList = currentState.topRatedMovieList.map {
+                            if(it.id == movieId){
+                                it.copy(
+                                    showLongClickUi = !it.showLongClickUi
+                                )
+                            } else it
+                        }
+                    )
+                }
+
+                else -> currentState
             }
         }
     }

@@ -21,5 +21,6 @@ data class Movie(
     val category: String,
     val cast: List<Cast> = emptyList(),
     val crew: List<Crew> = emptyList(),
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val showLongClickUi: Boolean = false
 ): Video()

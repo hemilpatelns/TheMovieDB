@@ -74,8 +74,10 @@ fun SeriesVideoList(
                     poster = seriesList[index].posterPath,
                     id = seriesList[index].id,
                     title = seriesList[index].name,
+                    showLongPressUi = seriesList[index].showLongClickUi,
                     isFavorite = seriesList[index].isFavorite,
                     route = Screen.SeriesDetails.rout,
+                    onToggleVideoCardUi = {},
                     onToggleFavorite = { id ->
                         onToggleFavorite(id, "series")
                     },

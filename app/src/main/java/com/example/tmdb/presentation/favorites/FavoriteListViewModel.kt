@@ -142,4 +142,30 @@ class FavoriteListViewModel @Inject constructor(
             }
         }
     }
+
+//    fun updateFavoriteList(videoId: Int, type: String) {
+//        toggleFavorite(
+//            videoId = videoId,
+//            type = type
+//        )
+//        _favoriteListState.update {
+//            when(type) {
+//                "movie" -> {
+//                    it.copy(
+//                        favoriteMovieList = emptyList()
+//                    )
+//                }
+//                "series" -> {
+//                    it.copy(
+//                        favoriteSeriesList = emptyList()
+//                    )
+//                }
+//                else -> it
+//            }
+//        }
+//        when(type) {
+//            "movie" -> getFavoriteMovies()
+//            "series" -> getFavoriteSeries()
+//        }
+//    }
 }

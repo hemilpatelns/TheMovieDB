@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -126,16 +127,21 @@ fun FavoriteMovieList(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items(movieList.size) { index ->
+            items(
+                items = movieList,
+                key = { it.id }
+            ) { movie ->
                 VideoCard(
                     navController = navController,
                     width = 200.dp,
                     height = 250.dp,
-                    poster = movieList[index].poster_path,
-                    id = movieList[index].id,
-                    title = movieList[index].title,
-                    isFavorite = movieList[index].isFavorite,
+                    poster = movie.poster_path,
+                    id = movie.id,
+                    title = movie.title,
+                    showLongPressUi = movie.showLongClickUi,
+                    isFavorite = movie.isFavorite,
                     route = Screen.Details.rout,
+                    onToggleVideoCardUi = {},
                     onToggleFavorite = onToggleFavorite,
                     onVideoCardClick = {}
                 )
@@ -169,16 +175,21 @@ fun FavoriteSeriesList(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items(seriesList.size) { index ->
+            items(
+                items = seriesList,
+                key = { it.id }
+            ) { series ->
                 VideoCard(
                     navController = navController,
                     width = 200.dp,
                     height = 250.dp,
-                    poster = seriesList[index].posterPath,
-                    id = seriesList[index].id,
-                    title = seriesList[index].name,
-                    isFavorite = seriesList[index].isFavorite,
+                    poster = series.posterPath,
+                    id = series.id,
+                    title = series.name,
+                    showLongPressUi = series.showLongClickUi,
+                    isFavorite = series.isFavorite,
                     route = Screen.SeriesDetails.rout,
+                    onToggleVideoCardUi = {},
                     onToggleFavorite = onToggleFavorite,
                     onVideoCardClick = {}
                 )

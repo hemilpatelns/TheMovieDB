@@ -21,9 +21,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +50,7 @@ import coil.size.Size
 import com.example.tmdb.data.remote.CommonApi
 import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.shimmerEffect
+import com.example.tmdb.presentation.list.VideoListScreenActions
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -58,14 +61,15 @@ fun VideoCard(
     poster: String,
     id: Int,
     title: String,
+    showLongPressUi: Boolean,
     isFavorite: Boolean,
     route: String,
+    onToggleVideoCardUi: (Int) -> Unit,
     onToggleFavorite: (Int) -> Unit,
     onVideoCardClick: () -> Unit
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
-    var showLongPressUi by remember { mutableStateOf(false) }
     val imageState = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
             .data(CommonApi.IMAGE_BASE_URL + poster)
@@ -84,11 +88,11 @@ fun VideoCard(
                     if (!showLongPressUi) {
                         navController.navigate(route + "/${id}")
                     }
-                    showLongPressUi = false
+                    onToggleVideoCardUi(id)
                 },
                 onLongClick = {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    showLongPressUi = true
+                    onToggleVideoCardUi(id)
                 }
             ),
     ) {
@@ -167,7 +171,6 @@ fun VideoCard(
                         .size(40.dp),
                     onClick = {
                         onToggleFavorite(id)
-
                     }
                 ) {
                     Icon(

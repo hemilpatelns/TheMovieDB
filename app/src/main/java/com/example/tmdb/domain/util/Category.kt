@@ -20,6 +20,5 @@ object Constants {
 
 enum class VideoType {
     Movie,
-    Series,
-    Anime,
+    Series
 }

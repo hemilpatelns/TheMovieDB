@@ -1,5 +1,6 @@
 package com.example.tmdb.presentation.list
 
+import android.R.attr.category
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,13 +34,6 @@ fun VideoListScreen(navController: NavHostController){
     val seriesListViewModel = hiltViewModel<SeriesViewModel>()
     val seriesListState by seriesListViewModel.seriesListState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        movieListViewModel.getMovieList(MovieCategory.NOW_PLAYING)
-        movieListViewModel.getMovieList(MovieCategory.POPULAR)
-        movieListViewModel.getMovieList(MovieCategory.TOP_RATED)
-        movieListViewModel.getMovieList(MovieCategory.UPCOMING)
-    }
-
     VideoList(
         navController = navController,
         movieListState = movieListState,
@@ -51,6 +45,12 @@ fun VideoListScreen(navController: NavHostController){
                 }
                 is VideoListScreenActions.OnVideoCardClick -> {
                     navController.navigate(Screen.Details.rout + "/${action.id}")
+                }
+                is VideoListScreenActions.OnToggleVideoCardUi -> {
+                    when(action.type) {
+                        "movie" -> movieListViewModel.onMovieLongClick(action.category, action.id)
+//                        "series" -> seriesListViewModel.toggleFavorite(action.id)
+                    }
                 }
                 is VideoListScreenActions.OnFavoriteButtonClick -> {
                     when(action.type) {
@@ -112,6 +112,9 @@ fun VideoList(
                     onListEnd = { category, type ->
                         onUserAction(VideoListScreenActions.OnListEnd(category, type))
                     },
+                    onToggleVideoCardUi = { type, category, id ->
+                        onUserAction(VideoListScreenActions.OnToggleVideoCardUi(type, category, id))
+                    },
                     onToggleFavorite = {id, type ->
                         onUserAction(VideoListScreenActions.OnFavoriteButtonClick(id, type))
                     }
@@ -124,6 +127,7 @@ fun VideoList(
 sealed interface VideoListScreenActions{
     data object OnSearchClick: VideoListScreenActions
     data class OnVideoCardClick(val id: Int): VideoListScreenActions
+    data class OnToggleVideoCardUi(val type: String, val category: String, val id: Int): VideoListScreenActions
     data class OnFavoriteButtonClick(val id: Int, val type: String): VideoListScreenActions
     data class OnListEnd(val category: String, val type: String): VideoListScreenActions
 }

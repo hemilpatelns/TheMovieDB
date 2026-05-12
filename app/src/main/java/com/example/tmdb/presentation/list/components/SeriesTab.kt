@@ -20,7 +20,7 @@ fun SeriesTab(
 ) {
     Column {
         SeriesVideoList(
-            SeriesCategory.AIRING_TODAY,
+            videoType = SeriesCategory.AIRING_TODAY,
             seriesListState = seriesListState,
             navController = navController,
             lazyListState = airingTodayListState,
@@ -28,7 +28,7 @@ fun SeriesTab(
             onListEnd = onListEnd
         )
         SeriesVideoList(
-            SeriesCategory.ON_THE_AIR,
+            videoType = SeriesCategory.ON_THE_AIR,
             seriesListState = seriesListState,
             navController = navController,
             lazyListState = onTheAirListState,
@@ -36,7 +36,7 @@ fun SeriesTab(
             onListEnd = onListEnd
         )
         SeriesVideoList(
-            SeriesCategory.POPULAR,
+            videoType = SeriesCategory.POPULAR,
             seriesListState = seriesListState,
             navController = navController,
             lazyListState = popularListState,
@@ -44,7 +44,7 @@ fun SeriesTab(
             onListEnd = onListEnd
         )
         SeriesVideoList(
-            SeriesCategory.TOP_RATED,
+            videoType = SeriesCategory.TOP_RATED,
             seriesListState = seriesListState,
             navController = navController,
             lazyListState = topRatedListState,

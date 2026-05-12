@@ -21,6 +21,7 @@ import androidx.navigation.NavHostController
 import com.example.tmdb.domain.util.Constants
 import com.example.tmdb.presentation.list.MovieListState
 import com.example.tmdb.presentation.list.SeriesListState
+import com.example.tmdb.presentation.list.VideoListScreenActions
 
 @Composable
 fun CategorySelector(
@@ -29,6 +30,7 @@ fun CategorySelector(
     seriesListState: SeriesListState,
     categories: List<String>,
     onCategorySelected: (String) -> Unit,
+    onToggleVideoCardUi: (String, String, Int) -> Unit,
     onToggleFavorite: (Int, String) -> Unit,
     onListEnd: (String, String) -> Unit
 ) {
@@ -75,6 +77,7 @@ fun CategorySelector(
                         popularListState = popularMoviesListState,
                         topRatedListState = topRatedMoviesListState,
                         upcomingListState = upcomingMoviesListState,
+                        onToggleVideoCardUi = onToggleVideoCardUi,
                         onToggleFavorite = onToggleFavorite,
                         onListEnd = onListEnd
                     )
