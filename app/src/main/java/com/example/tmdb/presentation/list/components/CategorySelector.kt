@@ -17,22 +17,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.example.tmdb.domain.util.Constants
 import com.example.tmdb.presentation.list.MovieListState
 import com.example.tmdb.presentation.list.SeriesListState
-import com.example.tmdb.presentation.list.VideoListScreenActions
 
 @Composable
 fun CategorySelector(
-    navController: NavHostController,
     movieListState: MovieListState,
     seriesListState: SeriesListState,
     categories: List<String>,
     onCategorySelected: (String) -> Unit,
     onToggleVideoCardUi: (String, String, Int) -> Unit,
     onToggleFavorite: (Int, String) -> Unit,
-    onListEnd: (String, String) -> Unit
+    onListEnd: (String, String) -> Unit,
+    onMovieClick: (Int) -> Unit,
+    onSeriesClick: (Int) -> Unit
 ) {
     var selectedCategory by rememberSaveable { mutableStateOf(categories.first()) }
     val nowPlayingMoviesListState = rememberLazyListState()
@@ -71,7 +70,6 @@ fun CategorySelector(
             when (selectedCategory) {
                 "Movies" -> {
                     MovieTab(
-                        navController = navController,
                         movieListState = movieListState,
                         nowPlayingListState = nowPlayingMoviesListState,
                         popularListState = popularMoviesListState,
@@ -79,20 +77,21 @@ fun CategorySelector(
                         upcomingListState = upcomingMoviesListState,
                         onToggleVideoCardUi = onToggleVideoCardUi,
                         onToggleFavorite = onToggleFavorite,
-                        onListEnd = onListEnd
+                        onListEnd = onListEnd,
+                        onMovieClick = onMovieClick
                     )
                 }
 
                 "Series" -> {
                     SeriesTab(
-                        navController = navController,
                         seriesListState = seriesListState,
                         airingTodayListState = airingTodaySeriesListState,
                         onTheAirListState = onTheAirSeriesListState,
                         popularListState = popularSeriesListState,
                         topRatedListState = topRatedSeriesListState,
                         onToggleFavorite = onToggleFavorite,
-                        onListEnd = onListEnd
+                        onListEnd = onListEnd,
+                        onSeriesClick = onSeriesClick
                     )
                 }
             }

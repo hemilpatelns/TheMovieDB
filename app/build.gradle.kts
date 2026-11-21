@@ -25,8 +25,13 @@ android {
             useSupportLibrary = true
         }
         val properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
-        buildConfigField("String", "API_KEY", properties.getProperty("API_KEY"))
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+        val apiKey = properties.getProperty("API_KEY") ?: ""
+        val formattedApiKey = if (apiKey.startsWith("\"") && apiKey.endsWith("\"")) apiKey else "\"$apiKey\""
+        buildConfigField("String", "API_KEY", formattedApiKey)
     }
 
     buildTypes {
@@ -97,7 +102,7 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

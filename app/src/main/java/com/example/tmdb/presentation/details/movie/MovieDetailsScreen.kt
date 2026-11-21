@@ -66,7 +66,7 @@ import com.example.tmdb.domain.util.FunctionUtil
 import com.example.tmdb.ui.theme.gradientBrushTwo
 
 @Composable
-fun VideoDetails(navController: NavHostController) {
+fun VideoDetails(onBackClick: () -> Unit) {
     val context = LocalContext.current
     val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     val movieDetailsViewModel = hiltViewModel<MovieDetailsViewModel>()
@@ -334,9 +334,7 @@ fun VideoDetails(navController: NavHostController) {
             .padding(horizontal = 20.dp)
     ) {
         IconButton(
-            onClick = {
-                navController.popBackStack()
-            },
+            onClick = onBackClick,
             modifier = Modifier
                 .background(
                     color = Color(0xA6303243),

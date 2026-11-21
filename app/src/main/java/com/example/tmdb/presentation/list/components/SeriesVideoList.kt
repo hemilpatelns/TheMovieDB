@@ -17,8 +17,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.SeriesCategory
 import com.example.tmdb.domain.util.toTitleCase
 import com.example.tmdb.presentation.components.VideoCard
@@ -28,10 +26,10 @@ import com.example.tmdb.presentation.list.SeriesListState
 fun SeriesVideoList(
     videoType: String,
     seriesListState: SeriesListState,
-    navController: NavHostController,
     lazyListState: LazyListState,
     onToggleFavorite: (Int, String) -> Unit,
-    onListEnd: (String, String) -> Unit
+    onListEnd: (String, String) -> Unit,
+    onSeriesClick: (Int) -> Unit
 ) {
     // Determine the appropriate movie list based on the video type
     val seriesList = when (videoType) {
@@ -68,7 +66,6 @@ fun SeriesVideoList(
             items(seriesList.size) { index ->
                 Spacer(modifier = Modifier.padding(start = 30.dp))
                 VideoCard(
-                    navController = navController,
                     width = 150.dp,
                     height = 230.dp,
                     poster = seriesList[index].posterPath,
@@ -76,12 +73,11 @@ fun SeriesVideoList(
                     title = seriesList[index].name,
                     showLongPressUi = seriesList[index].showLongClickUi,
                     isFavorite = seriesList[index].isFavorite,
-                    route = Screen.SeriesDetails.rout,
                     onToggleVideoCardUi = {},
                     onToggleFavorite = { id ->
                         onToggleFavorite(id, "series")
                     },
-                    onVideoCardClick = {}
+                    onVideoCardClick = onSeriesClick
                 )
                 Spacer(modifier = Modifier.padding(end = 30.dp))
 

@@ -21,12 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,20 +36,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.tmdb.data.remote.CommonApi
-import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.shimmerEffect
-import com.example.tmdb.presentation.list.VideoListScreenActions
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VideoCard(
-    navController: NavHostController,
     width: Dp,
     height: Dp,
     poster: String,
@@ -63,10 +53,9 @@ fun VideoCard(
     title: String,
     showLongPressUi: Boolean,
     isFavorite: Boolean,
-    route: String,
     onToggleVideoCardUi: (Int) -> Unit,
     onToggleFavorite: (Int) -> Unit,
-    onVideoCardClick: () -> Unit
+    onVideoCardClick: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
@@ -86,7 +75,7 @@ fun VideoCard(
             .combinedClickable(
                 onClick = {
                     if (!showLongPressUi) {
-                        navController.navigate(route + "/${id}")
+                        onVideoCardClick(id)
                     }
                     onToggleVideoCardUi(id)
                 },

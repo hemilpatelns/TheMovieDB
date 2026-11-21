@@ -27,19 +27,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.example.tmdb.domain.util.FunctionUtil
-import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.presentation.components.VideoCard
 import kotlinx.coroutines.launch
 
 @Composable
-fun FavoriteScreen(navController: NavHostController) {
-    TabLayout(navController)
+fun FavoriteScreen(
+    onNavigateToMovieDetails: (Int) -> Unit,
+    onNavigateToSeriesDetails: (Int) -> Unit
+) {
+    TabLayout(
+        onNavigateToMovieDetails = onNavigateToMovieDetails,
+        onNavigateToSeriesDetails = onNavigateToSeriesDetails
+    )
 }
 
 @Composable
-fun TabLayout(navController: NavHostController) {
+fun TabLayout(
+    onNavigateToMovieDetails: (Int) -> Unit,
+    onNavigateToSeriesDetails: (Int) -> Unit
+) {
     val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     val tabs = listOf("Movies", "Series")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -83,19 +90,19 @@ fun TabLayout(navController: NavHostController) {
             when (page) {
                 0 -> FavoriteMovieList(
                     movieListState = favoriteListState,
-                    navController = navController,
                     lazyGridState = favoriteMovieListState,
                     onToggleFavorite = {
                         favoriteListViewModel.toggleFavorite(it, "movie")
-                    }
+                    },
+                    onMovieClick = onNavigateToMovieDetails
                 )
                 1 -> FavoriteSeriesList(
                     seriesListState = favoriteListState,
-                    navController = navController,
                     lazyGridState = favoriteSeriesListState,
                     onToggleFavorite = {
                         favoriteListViewModel.toggleFavorite(it, "series")
-                    }
+                    },
+                    onSeriesClick = onNavigateToSeriesDetails
                 )
             }
         }
@@ -105,9 +112,9 @@ fun TabLayout(navController: NavHostController) {
 @Composable
 fun FavoriteMovieList(
     movieListState: FavoriteListState,
-    navController: NavHostController,
     lazyGridState: LazyGridState,
-    onToggleFavorite: (Int) -> Unit
+    onToggleFavorite: (Int) -> Unit,
+    onMovieClick: (Int) -> Unit
 ) {
     val movieList = movieListState.favoriteMovieList
     if (movieList.isEmpty() && movieListState.isLoading) {
@@ -132,7 +139,6 @@ fun FavoriteMovieList(
                 key = { it.id }
             ) { movie ->
                 VideoCard(
-                    navController = navController,
                     width = 200.dp,
                     height = 250.dp,
                     poster = movie.poster_path,
@@ -140,10 +146,9 @@ fun FavoriteMovieList(
                     title = movie.title,
                     showLongPressUi = movie.showLongClickUi,
                     isFavorite = movie.isFavorite,
-                    route = Screen.Details.rout,
                     onToggleVideoCardUi = {},
                     onToggleFavorite = onToggleFavorite,
-                    onVideoCardClick = {}
+                    onVideoCardClick = onMovieClick
                 )
             }
         }
@@ -153,9 +158,9 @@ fun FavoriteMovieList(
 @Composable
 fun FavoriteSeriesList(
     seriesListState: FavoriteListState,
-    navController: NavHostController,
     lazyGridState: LazyGridState,
-    onToggleFavorite: (Int) -> Unit
+    onToggleFavorite: (Int) -> Unit,
+    onSeriesClick: (Int) -> Unit
 ) {
     val seriesList = seriesListState.favoriteSeriesList
     if (seriesList.isEmpty() && seriesListState.isLoading) {
@@ -180,7 +185,6 @@ fun FavoriteSeriesList(
                 key = { it.id }
             ) { series ->
                 VideoCard(
-                    navController = navController,
                     width = 200.dp,
                     height = 250.dp,
                     poster = series.posterPath,
@@ -188,10 +192,9 @@ fun FavoriteSeriesList(
                     title = series.name,
                     showLongPressUi = series.showLongClickUi,
                     isFavorite = series.isFavorite,
-                    route = Screen.SeriesDetails.rout,
                     onToggleVideoCardUi = {},
                     onToggleFavorite = onToggleFavorite,
-                    onVideoCardClick = {}
+                    onVideoCardClick = onSeriesClick
                 )
             }
         }

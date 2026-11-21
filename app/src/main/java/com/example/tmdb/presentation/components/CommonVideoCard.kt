@@ -25,22 +25,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.tmdb.data.remote.CommonApi
 import com.example.tmdb.domain.model.SearchData
-import com.example.tmdb.domain.util.Screen
 import com.example.tmdb.domain.util.shimmerEffect
 
 @Composable
 fun CommonVideoCard(
     video: SearchData,
-    navController: NavHostController,
     width: Dp,
-    height: Dp
+    height: Dp,
+    onMovieClick: (Int) -> Unit,
+    onSeriesClick: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val imageState = rememberAsyncImagePainter(
@@ -57,13 +56,9 @@ fun CommonVideoCard(
             .height(height)
             .clip(RoundedCornerShape(10))
             .clickable {
-                when(video.mediaType){
-                    "movie" -> {
-                        navController.navigate(Screen.Details.rout + "/${video.id}")
-                    }
-                    "tv" -> {
-                        navController.navigate(Screen.SeriesDetails.rout + "/${video.id}")
-                    }
+                when (video.mediaType) {
+                    "movie" -> onMovieClick(video.id)
+                    "tv" -> onSeriesClick(video.id)
                 }
             },
     ) {

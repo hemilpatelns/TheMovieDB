@@ -24,14 +24,16 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.example.tmdb.domain.util.FunctionUtil
 import com.example.tmdb.presentation.components.CommonVideoCard
 import com.example.tmdb.presentation.components.SearchBar
 import kotlinx.coroutines.delay
 
 @Composable
-fun SearchScreen(navController: NavHostController) {
+fun SearchScreen(
+    onNavigateToMovieDetails: (Int) -> Unit,
+    onNavigateToSeriesDetails: (Int) -> Unit
+) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
@@ -73,9 +75,10 @@ fun SearchScreen(navController: NavHostController) {
                 val item = results[index]
                 CommonVideoCard(
                     video = item,
-                    navController = navController,
-                    200.dp,
-                    250.dp
+                    width = 200.dp,
+                    height = 250.dp,
+                    onMovieClick = onNavigateToMovieDetails,
+                    onSeriesClick = onNavigateToSeriesDetails
                 )
                 if (index == results.size - 1 && !viewmodel.isLoading) {
                     viewmodel.loadSearchResults()

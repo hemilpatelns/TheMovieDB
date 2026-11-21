@@ -29,15 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.example.tmdb.R
 import com.example.tmdb.domain.util.FunctionUtil
-import com.example.tmdb.domain.util.Screen
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
-
-//    val context = LocalContext.current
+fun HomeScreen(onAccessClick: () -> Unit) {
     val isEdgeToEdge = FunctionUtil.isEdgeToEdgeEnabled(LocalView.current)
     Box {
         Image(
@@ -84,13 +80,10 @@ fun HomeScreen(navController: NavHostController) {
                         shape = RoundedCornerShape(30.dp)
                     ),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent, // Makes the button background transparent
-                    contentColor = Color.White // Sets text color
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White
                 ),
-
-                onClick = {
-                    navController.navigate(Screen.BottomNav.rout)
-                }
+                onClick = onAccessClick
             ) {
                 Text(
                     text = "Access",

@@ -17,80 +17,94 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.tmdb.domain.util.Screen
-import com.example.tmdb.domain.util.toTitleCase
 import com.example.tmdb.presentation.favorites.FavoriteScreen
 import com.example.tmdb.ui.theme.gradientBrushOne
 
-
 @Composable
-fun BottomNavigation(navController: NavHostController) {
+fun BottomNavigation(
+    onNavigateToMovieDetails: (Int) -> Unit,
+    onNavigateToSeriesDetails: (Int) -> Unit,
+    onNavigateToSearch: () -> Unit
+) {
     val nestedNavController = rememberNavController()
     val navBackStackEntry by nestedNavController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentDestination = navBackStackEntry?.destination
 
-    // Routes where bottom bar should be visible
-    val bottomBarRoutes = listOf(Screen.VideoList.rout, Screen.Favorites.rout)
+    val bottomBarScreens = listOf(Screen.VideoList, Screen.Favorites)
+    val isBottomBarVisible = bottomBarScreens.any { screen ->
+        currentDestination?.hierarchy?.any { it.hasRoute(screen::class) } == true
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
-            if (currentRoute in bottomBarRoutes) {
+            if (isBottomBarVisible) {
                 BottomNavigationBar(nestedNavController)
             }
         }
-    ) {
+    ) { paddingValues ->
         NavHost(
             modifier = Modifier
-                .padding(it)
+                .padding(paddingValues)
                 .background(gradientBrushOne),
             navController = nestedNavController,
-            startDestination = Screen.VideoList.rout
+            startDestination = Screen.VideoList
         ) {
-            composable(Screen.VideoList.rout) {
-                VideoListScreen(navController)
+            composable<Screen.VideoList> {
+                VideoListScreen(
+                    onNavigateToMovieDetails = onNavigateToMovieDetails,
+                    onNavigateToSeriesDetails = onNavigateToSeriesDetails,
+                    onNavigateToSearch = onNavigateToSearch
+                )
             }
-            composable(Screen.Favorites.rout) {
-                FavoriteScreen(navController)
+            composable<Screen.Favorites> {
+                FavoriteScreen(
+                    onNavigateToMovieDetails = onNavigateToMovieDetails,
+                    onNavigateToSeriesDetails = onNavigateToSeriesDetails
+                )
             }
-
         }
     }
 }
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
-    val items = listOf(
-        Screen.VideoList,
-        Screen.Favorites
-    )
+    val items = listOf(Screen.VideoList, Screen.Favorites)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentDestination = navBackStackEntry?.destination
+
     NavigationBar(
         containerColor = Color(0xFD303243),
         tonalElevation = 10.dp
     ) {
         items.forEach { screen ->
+            val isSelected = currentDestination?.hierarchy?.any { it.hasRoute(screen::class) } == true
+            val title = when (screen) {
+                Screen.VideoList -> "List"
+                Screen.Favorites -> "Favorites"
+                else -> ""
+            }
             NavigationBarItem(
                 icon = {
                     Icon(
                         imageVector = if (screen == Screen.VideoList) Icons.Default.List else Icons.Default.Favorite,
-                        contentDescription = null
+                        contentDescription = title
                     )
                 },
-                label = {
-                    Text(
-                        text = screen.rout.toTitleCase()
-                    )
-                },
-                selected = currentRoute == screen.rout,
+                label = { Text(text = title) },
+                selected = isSelected,
                 onClick = {
-                    navController.navigate(screen.rout) {
-                        popUpTo(navController.graph.startDestinationId) {
+                    navController.navigate(screen) {
+                        popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
                         launchSingleTop = true
@@ -107,6 +121,4 @@ fun BottomNavigationBar(navController: NavHostController) {
             )
         }
     }
-
-
 }

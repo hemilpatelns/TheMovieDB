@@ -7,17 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.example.tmdb.presentation.home.HomeScreen
-import com.example.tmdb.presentation.list.BottomNavigation
-import com.example.tmdb.domain.util.Screen
-import com.example.tmdb.presentation.details.series.SeriesDetails
-import com.example.tmdb.presentation.details.movie.VideoDetails
-import com.example.tmdb.presentation.search.SearchScreen
+import com.example.tmdb.navigation.AppNavHost
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,42 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val navController = rememberNavController()
-
-            NavHost(
-                navController = navController,
-                startDestination = Screen.Home.rout
-            ) {
-                composable(Screen.Home.rout) {
-                    HomeScreen(navController)
-                }
-                composable(Screen.BottomNav.rout) {
-                    BottomNavigation(navController)
-                }
-                composable(
-                    Screen.Details.rout + "/{movieId}",
-                    arguments = listOf(
-                        navArgument("movieId") {
-                            type = NavType.IntType
-                        }
-                    )
-                ) {
-                    VideoDetails(navController)
-                }
-                composable(
-                    Screen.SeriesDetails.rout + "/{seriesId}",
-                    arguments = listOf(
-                        navArgument("seriesId") {
-                            type = NavType.IntType
-                        }
-                    )
-                ) {
-                    SeriesDetails(navController)
-                }
-                composable(Screen.Search.rout) {
-                    SearchScreen(navController)
-                }
-            }
+            AppNavHost()
         }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -72,4 +27,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
